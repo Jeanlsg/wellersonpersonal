@@ -1,14 +1,18 @@
-import { Resend } from 'resend';
+const { Resend } = require('resend');
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method Not Allowed' });
+exports.handler = async function(event, context) {
+  // Apenas aceita requisições POST
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      body: JSON.stringify({ error: 'Method Not Allowed' }),
+    };
   }
 
   try {
-    const data = req.body;
+    const data = JSON.parse(event.body);
 
     const emailContent = `
       <h1>Nova Avaliação - WS Consultoria</h1>
@@ -60,11 +64,20 @@ export default async function handler(req, res) {
     });
 
     if (error) {
-      return res.status(400).json({ error });
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ error }),
+      };
     }
 
-    res.status(200).json({ success: true, data: resendData });
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ success: true, data: resendData }),
+    };
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: error.message }),
+    };
   }
-}
+};

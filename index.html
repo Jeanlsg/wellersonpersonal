@@ -1173,7 +1173,7 @@ function calcularTudo() {
     doencas, medicamentos, lesoes, cirurgia, parada, sabAlim, reacaoFalha, motivacao
   };
 
-  fetch('/api/send', {
+  fetch('/.netlify/functions/send', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
