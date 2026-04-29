@@ -1,0 +1,12 @@
+{
+  "name": "ws-consultoria",
+  "version": "1.0.0",
+  "description": "Formulário WS Consultoria",
+  "main": "index.html",
+  "scripts": {
+    "start": "echo \"Use Vercel CLI to run this locally: vercel dev\""
+  },
+  "dependencies": {
+    "resend": "^3.2.0"
+  }
+}

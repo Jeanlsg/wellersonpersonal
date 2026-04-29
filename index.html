@@ -1013,6 +1013,25 @@ function calcularTudo() {
   const parada  = document.querySelector('input[name="parada"]:checked')?.value || '';
   const freqTreino = document.querySelector('input[name="freqTreino"]:checked')?.value || '3x';
 
+  // ── remaining fields for email
+  const nascimento = document.getElementById('nascimento')?.value || 'Não informado';
+  const whats = document.getElementById('whats')?.value || 'Não informado';
+  const email = document.getElementById('email')?.value || 'Não informado';
+  const estadoCivil = document.getElementById('estadoCivil')?.value || 'Não informado';
+  const doencas = document.getElementById('doencas')?.value || 'Nenhuma';
+  const medicamentos = document.getElementById('medicamentos')?.value || 'Não usa';
+  const lesoes = document.getElementById('lesoes')?.value || 'Nenhuma';
+  const cirurgia = document.getElementById('cirurgia')?.value || 'Não';
+  const motivacao = document.getElementById('motivacao')?.value || 'Não informado';
+  const refeicoes = document.querySelector('input[name="refeicoes"]:checked')?.value || '3';
+  const doces = document.querySelector('input[name="compulsao"]:checked')?.value || 'Não'; // Using compulsao as it's the closest field available
+  const treina = document.getElementById('tempoTreino')?.value || 'Não informado';
+  const cardio = document.querySelector('input[name="local"]:checked')?.value || 'Misto';
+  const prazo = document.getElementById('prazo')?.value || 'Não informado';
+  const cintura = document.getElementById('cintura')?.value || 'Não informado';
+  const gordura = document.getElementById('gordura')?.value || 'Não informado';
+  const pesoMeta = document.getElementById('pesoMeta')?.value || 'Não informado';
+
   // ── TMB (Harris-Benedict revisado)
   let tmb;
   if (sexo === 'M') tmb = 88.36 + (13.4 * peso) + (4.8 * altura) - (5.7 * idade);
@@ -1142,6 +1161,27 @@ function calcularTudo() {
       <div class="diag-title"><span class="diag-icon">${r.icon}</span>${r.title}</div>
       <div class="diag-text">${r.text}</div>
     </div>`).join('');
+
+  // ── SEND EMAIL VIA RESEND (VERCEL SERVERLESS FUNCTION) ──
+  const payload = {
+    nome, idade, nascimento, whats, email, sexo, estadoCivil,
+    peso, altura, imc, gordura, cintura, objetivo, pesoMeta, prazo,
+    tmb, metaCal, proteina: prot_g, agua: (peso * 0.035).toFixed(1),
+    nivelAtividade: fatorAt, trabalho: document.getElementById('trabalho')?.value || '',
+    sono, estresse, alcool, fuma: document.querySelector('input[name="fuma"]:checked')?.value || 'Não',
+    refeicoes, doces, delivery, treina, freqTreino, cardio,
+    doencas, medicamentos, lesoes, cirurgia, parada, sabAlim, reacaoFalha, motivacao
+  };
+
+  fetch('/api/send', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  }).then(res => res.json()).then(data => {
+    console.log('Email sent:', data);
+  }).catch(err => {
+    console.error('Error sending email:', err);
+  });
 }
 
 function novaAvaliacao() { location.reload(); }
