@@ -53,8 +53,8 @@ export default async function handler(req, res) {
     `;
 
     const { data: resendData, error } = await resend.emails.send({
-      from: 'WS Consultoria <onboarding@resend.dev>', // Change to verified domain email in production
-      to: process.env.RECEIVER_EMAIL || 'lucas@example.com', // Replace with the actual email
+      from: 'onboarding@resend.dev',
+      to: process.env.RECEIVER_EMAIL || 'welllersonpersonal@gmail.com',
       subject: `Nova Avaliação: ${data.nome}`,
       html: emailContent,
     });
