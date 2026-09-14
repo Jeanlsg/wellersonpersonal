@@ -68,18 +68,27 @@ para uma caixa que não existe, sem erro visível para quem preencheu.
 
 ## A marca no site
 
-O logo é um lockup **vertical** (W, figura, S empilhados — 113×287). Nessa
-proporção, na altura que cabe num cabeçalho, sobram 16px de largura e vira
-borrão. Por isso o site usa duas formas:
+O logo é um lockup **vertical** — W, figura e S empilhados, 113×287. O site usa o
+lockup completo no cabeçalho e no rodapé, igual à página da avaliação.
 
 | Onde | Peça | Token CSS |
 | --- | --- | --- |
-| Cabeçalho, rodapé, fim da abertura | Só a figura, que é quadrada | `--logo-icone` |
-| Abertura no modo `logo` | Lockup completo | `--logo` |
+| Cabeçalho e rodapé | Lockup completo, 3.4rem | `--logo` |
+| Abertura no modo `logo` | Lockup completo, grande | `--logo` |
+| Fim da abertura (modo `barra`) | Só a figura, ao lado do nome | `--logo-icone` |
 | Favicon | Figura num quadrado escuro, para funcionar em aba clara e escura | data URI no `<link rel="icon">` |
 
+**Por que o cabeçalho tem 5rem de altura.** Numa proporção de 1:2,54, o lockup a
+2,6rem (42px) deixa só 16px de largura e o desenho vira borrão — é o que acontece
+hoje no cabeçalho de `avaliacao.html`, que usa 42px. A 3,4rem sobram 21px e as
+três peças voltam a se distinguir. Se quiser reduzir o cabeçalho, troque o lockup
+pela figura sozinha (`class="logo logo--icone"`), que é quadrada e lê bem pequena.
+
+O favicon continua sendo a figura: o lockup inteiro em 16px daria 6px de largura.
+
 As imagens estão embutidas em base64, uma vez cada, como token CSS — repetir o
-base64 em cada `<img>` custaria ~6 KB por cópia.
+base64 em cada `<img>` custaria ~6 KB por cópia. O arquivo original de 500×500
+foi recortado e requantizado, caindo de 33 KB para 4,6 KB.
 
 ## Animação de abertura
 

@@ -55,7 +55,7 @@ html{ scroll-behavior:smooth; -webkit-text-size-adjust:100%; overflow-x:hidden; 
 /* overflow-x fica SÓ no html. No body, "hidden" o transformaria em contêiner de
    rolagem e o header sticky grudaria nele — que nunca rola — sumindo da tela. */
 body{ overflow-x:clip; }
-main[id], section[id], article[id]{ scroll-margin-top:5.5rem; }
+main[id], section[id], article[id]{ scroll-margin-top:6rem; }
 body{
   margin:0; background:var(--ink); color:var(--light);
   font-family:var(--body); font-size:1rem; line-height:1.65;
@@ -123,13 +123,13 @@ ul,ol{ margin:0; padding:0; list-style:none; }
   border-bottom:1px solid transparent; transition:border-color .25s, background .25s;
 }
 .topo--rolou{ border-bottom-color:var(--line); background:color-mix(in srgb, var(--ink) 95%, transparent); }
-.topo__in{ display:flex; align-items:center; gap:1rem; min-height:4.5rem; }
+.topo__in{ display:flex; align-items:center; gap:1rem; min-height:5rem; }
 .marca{ display:flex; align-items:center; gap:.75rem; text-decoration:none; margin-right:auto; }
 .logo{ background:var(--logo) center/contain no-repeat; aspect-ratio:113/287; flex:none; }
 /* Lockup completo só onde há altura de sobra (abertura). No cabeçalho e no
    rodapé entra o ícone, que é quadrado. */
 .logo--icone{ background-image:var(--logo-icone); aspect-ratio:91/92; }
-.marca .logo{ height:2.6rem; }
+.marca .logo{ height:3.4rem; }
 .marca__txt{ display:grid; line-height:1.05; }
 .marca__txt b{ font-family:var(--display); font-weight:400; font-size:1.3rem; letter-spacing:.1em; }
 .marca__txt small{ font-family:var(--mono); font-size:.6rem; letter-spacing:.18em; text-transform:uppercase; color:var(--muted); }
@@ -164,7 +164,7 @@ ul,ol{ margin:0; padding:0; list-style:none; }
   /* Gaveta com fundo OPACO: translúcido deixaria os links legíveis por cima do
      hero e o menu pareceria quebrado. */
   .nav{
-    position:fixed; inset:4.5rem 0 auto 0; max-height:calc(100dvh - 4.5rem);
+    position:fixed; inset:5rem 0 auto 0; max-height:calc(100dvh - 5rem);
     overflow-y:auto; flex-direction:column; align-items:stretch; gap:.2rem;
     padding:1.1rem 1.25rem 1.6rem; background:var(--ink);
     border-bottom:1px solid var(--line);
@@ -499,7 +499,7 @@ ul,ol{ margin:0; padding:0; list-style:none; }
 .rodape{ border-top:1px solid var(--line); background:var(--dark2); padding-block:2.5rem; }
 .rodape__in{ display:flex; flex-wrap:wrap; gap:1.5rem; align-items:center; justify-content:space-between; }
 .rodape__marca{ display:flex; align-items:center; gap:.75rem; }
-.rodape__marca .logo{ height:2.6rem; }
+.rodape__marca .logo{ height:3.4rem; }
 .rodape__marca b{ font-family:var(--display); font-size:1.25rem; letter-spacing:.1em; display:block; line-height:1.1; }
 .rodape__marca small{ font-family:var(--mono); font-size:.6rem; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); }
 .rodape__meta{ display:grid; gap:.25rem; font-size:.82rem; color:var(--muted); text-align:right; }
@@ -762,7 +762,7 @@ ul,ol{ margin:0; padding:0; list-style:none; }
 <header class="topo" id="topo">
   <div class="container topo__in">
     <a class="marca" href="#inicio" aria-label="Wellerson Silva, início">
-      <span class="logo logo--icone"></span>
+      <span class="logo"></span>
       <span class="marca__txt"><b>Wellerson Silva</b><small>Personal Trainer · WS Consultoria</small></span>
     </a>
     <nav class="nav" id="nav" aria-label="Principal">
@@ -1121,7 +1121,7 @@ ul,ol{ margin:0; padding:0; list-style:none; }
 <footer class="rodape">
   <div class="container rodape__in">
     <div class="rodape__marca">
-      <span class="logo logo--icone"></span>
+      <span class="logo"></span>
       <div><b>Wellerson Silva</b><small>Personal Trainer · CREF 000000-G/PE</small></div>
     </div>
     <div class="rodape__meta">
