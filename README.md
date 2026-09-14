@@ -11,7 +11,7 @@ CSS e o JS de cada uma vivem dentro do próprio arquivo.
 | Caminho | O que é |
 | --- | --- |
 | `index.html` | O site. É a home e o que precisa ser editado no dia a dia. |
-| `avaliacao.html` | O formulário de avaliação em 7 etapas. **Era a home até agora** — ver abaixo. |
+| `avaliacao.html` | O formulário de avaliação em 6 etapas, mais a janela de resultado. **Era a home até agora** — ver abaixo. |
 | `alunos/` | Fotos de antes e depois. Ver `alunos/LEIA-ME.md`. |
 | `bg/` | Texturas de fundo e o encaixe para a foto do topo. Ver `bg/LEIA-ME.md`. |
 | `foto-wellerson.jpg` | Foto da seção "Quem é". **Ainda não existe.** |
@@ -172,7 +172,7 @@ largura quando o contador anima.
 
 ### Rascunho salvo no navegador
 
-São 7 etapas e uns 10 minutos de preenchimento — perder tudo por um toque no
+São 6 etapas e uns 10 minutos de preenchimento — perder tudo por um toque no
 botão de voltar é o jeito mais fácil de a pessoa não terminar. A cada 400ms sem
 digitar, as respostas e a etapa atual vão para o `localStorage`, na chave
 `ws-avaliacao-v1`. Ao reabrir, o formulário volta de onde parou e uma barra
