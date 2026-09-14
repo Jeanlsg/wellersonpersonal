@@ -337,7 +337,25 @@ input[type=range]::-webkit-slider-thumb{
 .info-box strong{color:var(--light);}
 
 /* ── PRINT / SHARE ──────────────────────────────────── */
+.rascunho[hidden]{display:none;}   /* display:flex da classe vence o [hidden] do navegador */
+.rascunho{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  margin:-32px 0 40px;padding:10px 14px;border-radius:6px;
+  background:var(--dark3);border:1px solid var(--gray2);
+  font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);
+}
+.rascunho button{
+  margin-left:auto;background:transparent;border:1px solid var(--gray2);
+  border-radius:4px;color:var(--light);font-family:'DM Mono',monospace;
+  font-size:11px;padding:6px 12px;cursor:pointer;transition:all .2s;
+}
+.rascunho button:hover{border-color:var(--red);color:var(--red-lt);}
 .action-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px;}
+.action-btn.whats{background:#25d366;color:#07301a;}
+.action-btn.whats:hover{background:#31e575;}
+.envio-nota{
+  margin-top:14px;font-size:12px;line-height:1.7;color:var(--muted);max-width:62ch;
+}
 .action-btn{
   display:flex;align-items:center;gap:8px;
   background:var(--gray);border:none;border-radius:6px;
@@ -351,7 +369,7 @@ input[type=range]::-webkit-slider-thumb{
 .action-btn.primary:hover{background:var(--red-lt);}
 
 @media print{
-  .app-header,.steps-nav,.btn-row,.action-row,.progress-wrap{display:none!important;}
+  .app-header,.steps-nav,.btn-row,.action-row,.progress-wrap,.rascunho{display:none!important;}
   .section{display:block!important;}
   body{background:#fff;color:#000;}
 }
@@ -384,6 +402,11 @@ input[type=range]::-webkit-slider-thumb{
     <div class="step-dot" data-step="4" data-label="Mental" onclick="goTo(4)"></div>
     <div class="step-dot" data-step="5" data-label="Identificação" onclick="goTo(5)"></div>
     <div class="step-dot" data-step="6" data-label="Resultado" onclick="goTo(6)"></div>
+  </div>
+
+  <div class="rascunho" id="rascunho" hidden>
+    <span id="rascunhoTxt"></span>
+    <button type="button" onclick="limparRascunho()">Limpar respostas</button>
   </div>
 
   <!-- ─── STEP 1: DADOS CORPORAIS ────────────────────── -->
@@ -933,9 +956,11 @@ input[type=range]::-webkit-slider-thumb{
     <div id="recContainer"></div>
 
     <div class="action-row">
+      <button class="action-btn whats" onclick="enviarWhats()">📲 Enviar no WhatsApp</button>
       <button class="action-btn primary" onclick="window.print()">🖨️ Imprimir / Salvar PDF</button>
       <button class="action-btn" onclick="novaAvaliacao()">🔄 Nova Avaliação</button>
     </div>
+    <p class="envio-nota">A ficha completa já foi enviada por e-mail para o Wellerson. O botão do WhatsApp manda um resumo direto para ele — vale como segunda via, e é por onde ele costuma responder mais rápido.</p>
   </div>
 
 </div><!-- /container -->
@@ -960,9 +985,77 @@ function goTo(step) {
   const pct = (currentStep / (totalSteps - 1)) * 100;
   document.getElementById('progressBar').style.width = pct + '%';
   window.scrollTo({top: 0, behavior: 'smooth'});
+  if (typeof salvarRascunho === 'function') salvarRascunho();
 }
 function next() { if (currentStep < totalSteps - 1) goTo(currentStep + 1); }
 function prev() { if (currentStep > 0) goTo(currentStep - 1); }
+
+// ── RASCUNHO NO NAVEGADOR ────────────────────────────────────────────────────
+// O formulário tem 7 etapas e leva uns 10 minutos: perder tudo por um toque no
+// botão de voltar, ou por fechar a aba sem querer, é o jeito mais fácil de a
+// pessoa não terminar. Fica salvo só no navegador dela — nada é enviado antes de
+// ela chegar ao fim.
+const RASCUNHO = 'ws-avaliacao-v1';
+
+function camposDoForm() {
+  return document.querySelectorAll('.section input, .section select, .section textarea');
+}
+
+function salvarRascunho() {
+  try {
+    // A etapa de resultado não é restaurável: os números de lá dependem do
+    // cálculo, então o retorno para no último passo de preenchimento.
+    const d = { passo: Math.min(currentStep, totalSteps - 2), campos: {}, radios: {} };
+    camposDoForm().forEach(el => {
+      if (el.type === 'radio') { if (el.checked) d.radios[el.name] = el.value; }
+      else if (el.id) d.campos[el.id] = el.value;
+    });
+    // goTo() grava a cada troca de etapa. Sem esta guarda, um momento em que o
+    // formulário esteja em branco — restauração pela metade, script de terceiro,
+    // limpeza parcial — apagaria por cima o que a pessoa já tinha preenchido.
+    // Os sliders não contam: eles sempre têm um valor de partida.
+    const respostas = Object.keys(d.radios).length +
+      Array.from(camposDoForm()).filter(el => el.type !== 'radio' && el.type !== 'range' && String(el.value).trim()).length;
+    if (respostas === 0 && localStorage.getItem(RASCUNHO)) return;
+
+    localStorage.setItem(RASCUNHO, JSON.stringify(d));
+    mostrarBarra('Rascunho salvo neste navegador.');
+  } catch (e) {
+    // Aba anônima ou armazenamento bloqueado: seguir sem salvar é melhor do que
+    // quebrar o formulário por causa de uma conveniência.
+  }
+}
+
+function restaurarRascunho() {
+  let d = null;
+  try { d = JSON.parse(localStorage.getItem(RASCUNHO) || 'null'); } catch (e) { return false; }
+  if (!d) return false;
+
+  camposDoForm().forEach(el => {
+    if (el.type === 'radio') { if (d.radios[el.name] === el.value) el.checked = true; }
+    else if (el.id && d.campos[el.id] !== undefined) el.value = d.campos[el.id];
+  });
+  // Os rótulos dos sliders e o IMC são calculados por oninput, então só devolver
+  // o valor não basta: é preciso disparar o evento para eles se atualizarem.
+  camposDoForm().forEach(el => el.dispatchEvent(new Event('input', { bubbles: true })));
+
+  if (typeof d.passo === 'number' && d.passo > 0) goTo(d.passo);
+  mostrarBarra('Retomamos de onde você parou. Os dados ficam só neste navegador.');
+  return true;
+}
+
+function limparRascunho() {
+  if (!confirm('Isso apaga tudo que você preencheu até aqui. Quer mesmo recomeçar?')) return;
+  try { localStorage.removeItem(RASCUNHO); } catch (e) {}
+  location.reload();
+}
+
+function mostrarBarra(txt) {
+  const b = document.getElementById('rascunho');
+  if (!b) return;
+  document.getElementById('rascunhoTxt').textContent = txt;
+  b.hidden = false;
+}
 
 // ── IMC LIVE ─────────────────────────────────────────────────────────────────
 function calcIMC() {
@@ -1166,6 +1259,8 @@ function calcularTudo() {
     doencas, medicamentos, lesoes, cirurgia, parada, sabAlim, reacaoFalha, motivacao
   };
 
+  ultimaAvaliacao = payload;
+
   fetch('/.netlify/functions/send', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -1177,11 +1272,75 @@ function calcularTudo() {
   });
 }
 
-function novaAvaliacao() { location.reload(); }
+/* Guarda a última avaliação calculada para o botão do WhatsApp poder montar o
+   resumo sem recalcular nada. */
+let ultimaAvaliacao = null;
+
+/* O resumo é curto de propósito: o texto viaja dentro da URL do wa.me e, passando
+   de uns 2000 caracteres, o WhatsApp corta ou nem abre. A ficha inteira vai por
+   e-mail; aqui vão só os pontos que o Wellerson precisa para responder. */
+function resumoWhats(d) {
+  const l = [];
+  const par = (rot, val, suf) => { if (val !== undefined && val !== null && String(val).trim() && String(val) !== 'NaN') l.push('*' + rot + ':* ' + val + (suf || '')); };
+
+  l.push('*AVALIAÇÃO — WS CONSULTORIA*');
+  l.push('');
+  par('Aluno', d.nome);
+  par('Idade', d.idade, ' anos');
+  par('WhatsApp', d.whats);
+  l.push('');
+  l.push('*— Objetivo —*');
+  par('Meta', d.objetivo);
+  par('Prazo', d.prazo);
+  par('Peso', d.peso + ' kg' + (d.pesoMeta ? ' → ' + d.pesoMeta + ' kg' : ''));
+  l.push('');
+  l.push('*— Números —*');
+  par('Altura', d.altura, ' cm');
+  par('IMC', d.imc);
+  par('Gordura', d.gordura, '%');
+  par('Cintura', d.cintura, ' cm');
+  par('TMB', d.tmb, ' kcal');
+  par('Meta calórica', d.metaCal, ' kcal/dia');
+  par('Proteína', d.proteina, ' g/dia');
+  par('Água', d.agua, ' L/dia');
+  l.push('');
+  l.push('*— Rotina —*');
+  par('Treina hoje', d.treina);
+  par('Frequência', d.freqTreino);
+  par('Sono', d.sono, ' h');
+  par('Estresse', d.estresse, '/10');
+  l.push('');
+  l.push('*— Saúde —*');
+  par('Doenças', d.doencas);
+  par('Medicamentos', d.medicamentos);
+  par('Lesões', d.lesoes);
+  par('Cirurgias', d.cirurgia);
+
+  return l.join('\n').replace(/\n{3,}/g, '\n\n');
+}
+
+function enviarWhats() {
+  if (!ultimaAvaliacao) { alert('Preencha a avaliação antes de enviar.'); return; }
+  const txt = encodeURIComponent(resumoWhats(ultimaAvaliacao));
+  window.open('https://wa.me/558788291247?text=' + txt, '_blank', 'noopener');
+}
+
+function novaAvaliacao() {
+  try { localStorage.removeItem(RASCUNHO); } catch (e) {}
+  location.reload();
+}
 
 // Auto-configure WS brand on load
 window.addEventListener('DOMContentLoaded', function() {
   document.documentElement.style.setProperty('--red', '#E8272A');
+  restaurarRascunho();
+
+  // Um respiro de 400ms entre a última tecla e a gravação: sem isso o
+  // localStorage seria reescrito a cada caractere digitado.
+  let t = null;
+  const agendar = () => { clearTimeout(t); t = setTimeout(salvarRascunho, 400); };
+  document.addEventListener('input', agendar);
+  document.addEventListener('change', agendar);
 });
 </script>
 </body>

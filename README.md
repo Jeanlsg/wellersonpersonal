@@ -168,6 +168,47 @@ avaliação para as duas páginas não parecerem de projetos diferentes:
 Os números usam `font-variant-numeric: tabular-nums`, senão os dígitos dançam de
 largura quando o contador anima.
 
+## A ficha de avaliação
+
+### Rascunho salvo no navegador
+
+São 7 etapas e uns 10 minutos de preenchimento — perder tudo por um toque no
+botão de voltar é o jeito mais fácil de a pessoa não terminar. A cada 400ms sem
+digitar, as respostas e a etapa atual vão para o `localStorage`, na chave
+`ws-avaliacao-v1`. Ao reabrir, o formulário volta de onde parou e uma barra
+avisa, com o botão **Limpar respostas**.
+
+Fica só no navegador de quem preencheu: nada é enviado antes de ela chegar ao
+fim. Se o armazenamento estiver bloqueado (aba anônima, configuração do
+navegador), a gravação falha em silêncio e o formulário segue funcionando.
+
+Duas guardas que valem conhecer antes de mexer:
+
+- `goTo()` grava a cada troca de etapa. Por isso `salvarRascunho()` **não
+  sobrescreve um rascunho existente com um formulário em branco** — sem isso, um
+  estado transitório vazio apagaria o que já estava preenchido. Os sliders não
+  contam como resposta, porque sempre têm um valor de partida.
+- Ao restaurar, não basta devolver os valores: o IMC e os rótulos dos sliders são
+  calculados por `oninput`, então é preciso disparar o evento em cada campo.
+
+A etapa de resultado não é restaurável — os números dela dependem do cálculo, e o
+retorno para no último passo de preenchimento.
+
+### Enviar o resultado
+
+Ao chegar no resultado, a ficha completa já vai por e-mail, sozinha, pela função
+da Netlify. O botão **Enviar no WhatsApp** manda um resumo direto para o
+Wellerson: nome, objetivo, peso e meta, os números calculados, rotina de treino e
+o bloco de saúde.
+
+O resumo é curto de propósito. O texto viaja dentro da URL do `wa.me` e, passando
+de uns 2000 caracteres, o WhatsApp corta ou nem abre. Com um caso cheio — nome
+longo, quatro campos de saúde preenchidos — o texto deu 600 caracteres e a URL
+1015, então há folga. Se for acrescentar campos ao resumo, meça de novo.
+
+Vale como segunda via: hoje, se o envio do e-mail falhar, o erro só aparece no
+console e ninguém fica sabendo.
+
 ## Rodar local
 
 ```sh
