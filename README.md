@@ -13,6 +13,7 @@ CSS e o JS de cada uma vivem dentro do próprio arquivo.
 | `index.html` | O site. É a home e o que precisa ser editado no dia a dia. |
 | `avaliacao.html` | O formulário de avaliação em 7 etapas. **Era a home até agora** — ver abaixo. |
 | `alunos/` | Fotos de antes e depois. Ver `alunos/LEIA-ME.md`. |
+| `bg/` | Texturas de fundo e o encaixe para a foto do topo. Ver `bg/LEIA-ME.md`. |
 | `foto-wellerson.jpg` | Foto da seção "Quem é". **Ainda não existe.** |
 | `netlify/functions/send.js` | Função que recebe o formulário e manda por e-mail (Resend). |
 | `package.json` | Dependências só da função serverless. O site não usa nenhuma. |
@@ -144,10 +145,18 @@ o detalhe vive num `<details class="det">` dentro da própria carta:
 </details>
 ```
 
-É `<details>` nativo, não JavaScript: clique, teclado e leitor de tela já
-funcionam, o conteúdo continua no HTML (e indexável) mesmo sem JS, e não há
-estado para sincronizar. O `align-items:start` no `.servs` é o que impede as
-cartas vizinhas de esticarem quando uma abre.
+É `<details>` nativo: clique, teclado e leitor de tela já funcionam, o conteúdo
+continua no HTML (e indexável) mesmo sem JS, e não há estado para sincronizar. O
+`align-items:start` no `.servs` é o que impede as cartas vizinhas de esticarem
+quando uma abre.
+
+Um trecho curto de JavaScript faz **a carta inteira** abrir e fechar, não só o
+"Ver o que inclui". Ele ignora três casos, senão atrapalharia mais do que ajuda:
+clique em link ou botão, clique no próprio `<summary>` (que já tem o
+comportamento nativo) e clique dentro do detalhe já aberto — este último para
+ninguém fechar a carta tentando ler a lista. Também não alterna quando há texto
+selecionado, para arrastar e copiar não virar um fecha-abre. O `<summary>`
+continua sendo o controle de verdade: é ele que responde ao teclado.
 
 Cada carta tem o próprio link de WhatsApp, com a mensagem já preenchida para
 aquele serviço. Ao trocar o número, o `sed` da seção de placeholders pega todos.

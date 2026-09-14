@@ -57,7 +57,9 @@ html{ scroll-behavior:smooth; -webkit-text-size-adjust:100%; overflow-x:hidden; 
 body{ overflow-x:clip; }
 main[id], section[id], article[id]{ scroll-margin-top:6rem; }
 body{
-  margin:0; background:var(--ink); color:var(--light);
+  /* O grão é um ladrilho de 64px com dois níveis de alfa: tira o aspecto chapado
+     do fundo e mata o listrado que gradiente em tela escura costuma criar. */
+  margin:0; background-color:var(--ink); background-image:url("bg/grao.png"); color:var(--light);
   font-family:var(--body); font-size:1rem; line-height:1.65;
   -webkit-font-smoothing:antialiased;
 }
@@ -82,7 +84,10 @@ ul,ol{ margin:0; padding:0; list-style:none; }
 
 .container{ width:min(1160px, 100% - 2.5rem); margin-inline:auto; }
 .secao{ padding-block:clamp(4rem, 9vw, 7rem); position:relative; }
-.secao--alt{ background:var(--dark2); border-block:1px solid var(--line); }
+.secao--alt{
+  background-color:var(--dark2); border-block:1px solid var(--line);
+  background-image:url("bg/grao.png"), url("bg/chapa.png");
+}
 .nb{ white-space:nowrap; }
 
 .eyebrow{
@@ -184,15 +189,28 @@ ul,ol{ margin:0; padding:0; list-style:none; }
    Hero
    --------------------------------------------------------------------- */
 .hero{ position:relative; padding-block:clamp(3.5rem, 8vw, 6rem) clamp(3rem, 7vw, 5rem); overflow:hidden; }
-.hero__bg{ position:absolute; inset:0; pointer-events:none; }
+.hero__bg{
+  position:absolute; inset:0; pointer-events:none;
+  /* bg/hero.jpg é opcional: se o arquivo não existir, o navegador simplesmente
+     não pinta essa camada e as anilhas abaixo continuam valendo. */
+  background-image:url("bg/hero.jpg"), url("bg/anilhas.png");
+  background-size:cover, cover;
+  background-position:center, right -10% top -20%;
+  background-repeat:no-repeat, no-repeat;
+}
+/* Véu por cima da foto. Sem ele, qualquer imagem de fundo come o contraste do
+   título; o lado esquerdo fica mais fechado porque é onde o texto vive. */
+.hero__bg::before{
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(95deg, var(--ink) 0 26%, rgba(14,14,14,.92) 48%, rgba(14,14,14,.64) 100%);
+}
 .hero__bg::after{
   content:""; position:absolute; inset:0;
-  background:radial-gradient(58% 52% at 74% 10%, rgba(232,39,42,.18), transparent 70%);
+  background:radial-gradient(58% 52% at 74% 10%, rgba(232,39,42,.2), transparent 70%);
 }
-/* Listras diagonais discretas, lembrando piso de academia / fita de borda. */
-.hero__bg::before{
-  content:""; position:absolute; inset:0; opacity:.35;
-  background:repeating-linear-gradient(115deg, transparent 0 38px, rgba(255,255,255,.022) 38px 40px);
+@media (max-width:999px){
+  /* No celular o texto passa por cima da imagem inteira, então o véu fecha mais. */
+  .hero__bg::before{ background:linear-gradient(180deg, rgba(14,14,14,.9), rgba(14,14,14,.97)); }
 }
 .hero__grid{ position:relative; display:grid; gap:clamp(2.5rem,5vw,4rem); align-items:center; grid-template-columns:1fr; }
 @media (min-width:1000px){ .hero__grid{ grid-template-columns:minmax(0,1.08fr) minmax(0,.92fr); } }
@@ -352,7 +370,10 @@ ul,ol{ margin:0; padding:0; list-style:none; }
   background:linear-gradient(90deg, var(--red), transparent);
   border-radius:10px 0 0 0; transition:width .4s ease;
 }
+.serv{ cursor:pointer; }
 .serv:hover{ border-color:color-mix(in srgb, var(--red) 45%, var(--line)); transform:translateY(-4px); box-shadow:var(--brilho); }
+/* Dentro do detalhe aberto o cursor volta ao normal: ali o clique não alterna. */
+.serv .det__in{ cursor:auto; }
 .serv:hover::before{ width:70%; }
 .serv__topo{ display:flex; align-items:center; justify-content:space-between; gap:.75rem; flex-wrap:wrap; }
 .serv__tag{ font-family:var(--mono); font-size:.68rem; letter-spacing:.16em; text-transform:uppercase; color:var(--red); }
@@ -398,6 +419,12 @@ ul,ol{ margin:0; padding:0; list-style:none; }
    ANTES E DEPOIS
    ===================================================================== */
 .ad{ display:grid; gap:clamp(2rem,4vw,3rem); }
+#antes-depois{ position:relative; overflow:hidden; }
+#antes-depois::before{
+  content:""; position:absolute; inset:0; pointer-events:none; opacity:.55;
+  background:url("bg/anilhas.png") no-repeat left -14% bottom -24%/ 62rem auto;
+}
+#antes-depois > .container{ position:relative; }
 .ad__destaque{ display:grid; gap:clamp(1.5rem,3vw,2.5rem); align-items:center; grid-template-columns:1fr; }
 @media (min-width:900px){ .ad__destaque{ grid-template-columns:minmax(0,1fr) minmax(0,1fr); } }
 
@@ -535,6 +562,12 @@ ul,ol{ margin:0; padding:0; list-style:none; }
 /* ---------------------------------------------------------------------
    Contato
    --------------------------------------------------------------------- */
+.contato{ position:relative; overflow:hidden; }
+.contato::before{
+  content:""; position:absolute; inset:0; pointer-events:none; opacity:.5;
+  background:url("bg/anilhas.png") no-repeat center / 70rem auto;
+}
+.contato > .container{ position:relative; }
 .contato__in{ display:grid; gap:1.2rem; justify-items:center; text-align:center; }
 .contato h2{ font-size:clamp(2.4rem,7vw,4.4rem); }
 .contato__in > p:not(.eyebrow){ color:var(--muted); max-width:52ch; }
@@ -1334,6 +1367,22 @@ ul,ol{ margin:0; padding:0; list-style:none; }
       btn.setAttribute('aria-expanded','false'); btn.setAttribute('aria-label','Abrir menu');
       nav.classList.remove('nav--aberto'); document.documentElement.style.overflow='';
     }
+  });
+})();
+
+/* Carta de serviço: o clique em qualquer ponto dela abre e fecha o detalhe ----
+   O <summary> continua sendo o controle de verdade — é ele que responde ao
+   teclado e ao leitor de tela. Isto aqui é só conveniência para o mouse. */
+(function(){
+  document.querySelectorAll('.serv').forEach(function(carta){
+    var det=carta.querySelector('details.det'); if(!det) return;
+    carta.addEventListener('click', function(e){
+      /* link, o próprio summary e o conteúdo já aberto têm o comportamento deles */
+      if(e.target.closest('a, button, summary, .det__in')) return;
+      /* se a pessoa está selecionando texto, não é clique de abrir */
+      if(String(window.getSelection())) return;
+      det.open=!det.open;
+    });
   });
 })();
 
