@@ -142,9 +142,13 @@ ul,ol{ margin:0; padding:0; list-style:none; }
 @media (min-width:901px) and (max-width:1120px){ .topo__cta span{ display:none; } }
 
 .progresso{
-  position:absolute; left:0; right:0; bottom:-1px; height:2px;
+  position:absolute; left:0; right:0; bottom:-1px; height:3px;
   background:linear-gradient(90deg, var(--red), var(--red-lt));
   transform-origin:0 50%; transform:scaleX(0);
+  /* Máscara de blocos: a barra contínua passa a ler como anilha empilhada,
+     sem precisar de um elemento por bloco. */
+  -webkit-mask-image:repeating-linear-gradient(90deg, #000 0 12px, transparent 12px 15px);
+  mask-image:repeating-linear-gradient(90deg, #000 0 12px, transparent 12px 15px);
 }
 @supports (animation-timeline: scroll()){
   .progresso{ animation:progresso linear both; animation-timeline:scroll(root block); }
@@ -211,10 +215,8 @@ ul,ol{ margin:0; padding:0; list-style:none; }
 .lead strong{ color:var(--light); font-weight:700; }
 .hero__cta{ display:flex; flex-wrap:wrap; gap:.75rem; }
 
-.prova{ display:flex; flex-wrap:wrap; gap:1.5rem 2.25rem; padding-top:.75rem; }
-.prova li{ display:grid; gap:.1rem; }
-.prova b{ font-family:var(--display); font-size:2.4rem; font-weight:400; color:var(--red); line-height:.9; }
-.prova span{ font-family:var(--mono); font-size:.68rem; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); }
+.prova{ display:flex; flex-wrap:wrap; gap:.6rem; padding-top:.75rem; width:100%; }
+.prova li{ flex:1 1 7rem; }
 
 /* ---------------------------------------------------------------------
    Painel do hero: a ficha do aluno.
@@ -296,10 +298,49 @@ ul,ol{ margin:0; padding:0; list-style:none; }
 @keyframes correr{ to{ transform:translateX(-50%); } }
 .faixa:hover .faixa__trilho{ animation-play-state:paused; }
 
+
+/* =====================================================================
+   TEMA: PLACAR DE TREINO
+   Três peças carregam a temática, e as duas primeiras são reusadas na ficha de
+   avaliação: .placar, o dígito grande de painel de academia; a máscara de
+   blocos no progresso, que faz a barra ler como anilha empilhada em vez de
+   linha contínua; e .barra-div, a divisória que é uma barra com anilha nas
+   pontas.
+   ===================================================================== */
+.placar{
+  display:grid; gap:.2rem; padding:.7rem .9rem; border-radius:6px;
+  background:linear-gradient(180deg,#000,#0b0b0b);
+  border:1px solid var(--line); position:relative; overflow:hidden;
+}
+/* Risco de varredura: dá o aspecto de painel aceso sem precisar de imagem. */
+.placar::after{
+  content:""; position:absolute; inset:0; pointer-events:none; opacity:.5;
+  background:repeating-linear-gradient(180deg, transparent 0 3px, rgba(0,0,0,.55) 3px 4px);
+}
+.placar b{
+  font-family:var(--display); font-size:clamp(2rem,4vw,2.9rem); line-height:.85;
+  color:var(--red); letter-spacing:.03em;
+  font-variant-numeric:tabular-nums; font-feature-settings:"tnum";
+  text-shadow:0 0 14px rgba(232,39,42,.5);
+}
+.placar span{
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--muted); white-space:nowrap;
+}
+/* Divisória de seção: uma barra com anilha nas pontas. */
+.barra-div{ display:flex; align-items:center; gap:.6rem; margin-block:clamp(2rem,4vw,3rem); }
+.barra-div::before,.barra-div::after{ content:""; width:10px; height:26px; border-radius:3px; background:linear-gradient(180deg,#3d3d3d,#232323); border:1px solid var(--line2); flex:none; }
+.barra-div i{ flex:1; height:3px; border-radius:2px; background:linear-gradient(90deg,#5e5e5e,#3a3a3a); }
+
 /* ---------------------------------------------------------------------
    Serviços
    --------------------------------------------------------------------- */
-.servs{ display:grid; gap:1.1rem; grid-template-columns:repeat(auto-fit, minmax(min(100%, 19rem), 1fr)); }
+.servs{
+  display:grid; gap:1.1rem; grid-template-columns:repeat(auto-fit, minmax(min(100%, 19rem), 1fr));
+  /* align-items:start é o que impede as outras cartas de esticarem junto quando
+     uma abre — sem isso as vizinhas ficam altas e ocas. */
+  align-items:start;
+}
 .serv{
   position:relative; display:grid; gap:.85rem; align-content:start;
   padding:1.7rem 1.5rem 1.5rem; border-radius:10px;
@@ -327,13 +368,31 @@ ul,ol{ margin:0; padding:0; list-style:none; }
 .serv__lista{ display:grid; gap:.45rem; font-size:.92rem; color:var(--muted); }
 .serv__lista li{ position:relative; padding-left:1.15rem; }
 .serv__lista li::before{ content:"›"; position:absolute; left:0; top:-.05em; color:var(--red); font-family:var(--mono); }
-.serv__mais{
-  justify-self:start; margin-top:.35rem; padding:.55rem .9rem; border-radius:5px;
-  border:1px solid var(--line2); background:transparent; cursor:pointer;
+/* Detalhe que abre dentro da própria carta. É um <details> nativo: clique,
+   teclado e leitor de tela já funcionam, e o conteúdo continua no HTML mesmo
+   sem JavaScript — o que também o mantém indexável. */
+.det{ margin-top:.3rem; }
+.det > summary{
+  list-style:none; cursor:pointer; display:inline-flex; align-items:center; gap:.5rem;
+  padding:.55rem .9rem; border-radius:5px; border:1px solid var(--line2);
   font-family:var(--mono); font-size:.76rem; color:var(--light);
   transition:border-color .2s, color .2s, background .2s;
 }
-.serv__mais:hover{ border-color:var(--red); color:var(--red-lt); background:rgba(232,39,42,.07); }
+.det > summary::-webkit-details-marker{ display:none; }
+.det > summary:hover{ border-color:var(--red); color:var(--red-lt); background:rgba(232,39,42,.07); }
+.det > summary::after{ content:"+"; font-size:1.1em; line-height:1; color:var(--red); }
+.det[open] > summary::after{ content:"–"; }
+.det[open] > summary{ border-color:var(--red); color:var(--red-lt); }
+.det__in{ display:grid; gap:1rem; padding-top:1.1rem; animation:abrirDet .28s ease both; }
+@keyframes abrirDet{ from{ opacity:0; transform:translateY(-6px); } to{ opacity:1; transform:none; } }
+.det ol{ display:grid; gap:.45rem; counter-reset:etapa; font-size:.9rem; color:var(--muted); }
+.det ol li{ position:relative; padding-left:1.7rem; }
+.det ol li::before{
+  counter-increment:etapa; content:counter(etapa); position:absolute; left:0; top:.1em;
+  width:1.15rem; height:1.15rem; border-radius:3px; display:grid; place-items:center;
+  font-family:var(--mono); font-size:.6rem; color:var(--red); border:1px solid var(--line2);
+}
+.det__acoes{ display:flex; flex-wrap:wrap; gap:.6rem; padding-top:.3rem; }
 
 /* =====================================================================
    ANTES E DEPOIS
@@ -386,10 +445,8 @@ ul,ol{ margin:0; padding:0; list-style:none; }
 .ad__legenda{ display:grid; gap:1rem; justify-items:start; }
 .ad__legenda h3{ font-size:clamp(1.9rem,4vw,2.6rem); }
 .ad__legenda p{ color:var(--muted); }
-.ad__dados{ display:flex; flex-wrap:wrap; gap:1.25rem 2rem; }
-.ad__dados div{ display:grid; gap:.1rem; }
-.ad__dados b{ font-family:var(--display); font-size:1.9rem; color:var(--red); line-height:.9; }
-.ad__dados span{ font-family:var(--mono); font-size:.66rem; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); }
+.ad__dados{ display:flex; flex-wrap:wrap; gap:.5rem; width:100%; }
+.ad__dados .placar{ flex:1 1 7rem; }
 
 .casos{ display:grid; gap:1rem; grid-template-columns:repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); }
 .caso{ display:grid; gap:.8rem; padding:.8rem; border-radius:10px; border:1px solid var(--line); background:var(--dark2); }
@@ -435,7 +492,11 @@ ul,ol{ margin:0; padding:0; list-style:none; }
 .passo{ position:relative; display:grid; gap:.5rem; align-content:start; padding:1.5rem 1.35rem; border-radius:8px; background:var(--slab); border:1px solid var(--line); }
 .passo::before{
   counter-increment:passo; content:"0" counter(passo);
-  font-family:var(--display); font-size:1.6rem; color:var(--red); letter-spacing:.06em; line-height:1;
+  font-family:var(--display); font-size:2.2rem; line-height:.85; letter-spacing:.04em;
+  color:var(--red); text-shadow:0 0 14px rgba(232,39,42,.45);
+  font-variant-numeric:tabular-nums;
+  justify-self:start; padding:.35rem .6rem; border-radius:5px;
+  background:linear-gradient(180deg,#000,#0b0b0b); border:1px solid var(--line);
 }
 .passo h3{ font-size:1.3rem; }
 .passo p{ color:var(--muted); font-size:.92rem; }
@@ -516,33 +577,6 @@ ul,ol{ margin:0; padding:0; list-style:none; }
 .zap:hover{ transform:scale(1.07); }
 .zap svg{ width:1.8rem; height:1.8rem; }
 
-/* ---------------------------------------------------------------------
-   Modal de serviço
-   --------------------------------------------------------------------- */
-.modal{
-  width:min(52rem, 100% - 2rem); max-height:min(84dvh, 46rem); padding:0; border:1px solid var(--line2);
-  border-radius:10px; background:var(--dark2); color:var(--light); box-shadow:var(--sombra); overflow:auto;
-}
-.modal::backdrop{ background:rgba(5,5,5,.8); backdrop-filter:blur(4px); }
-.modal__in{ display:grid; gap:1.4rem; padding:clamp(1.4rem,4vw,2.2rem); }
-.modal__topo{ display:flex; gap:1rem; align-items:start; justify-content:space-between; }
-.modal__tag{ font-family:var(--mono); font-size:.68rem; letter-spacing:.16em; text-transform:uppercase; color:var(--red); }
-.modal__topo h3{ font-size:clamp(1.8rem,4vw,2.4rem); margin-block:.25rem; }
-.modal__spec{ font-family:var(--mono); font-size:.72rem; color:var(--muted); }
-.modal__fechar{ width:2.4rem; height:2.4rem; flex:none; border-radius:6px; border:1px solid var(--line2); background:transparent; cursor:pointer; display:grid; place-items:center; }
-.modal__fechar:hover{ border-color:var(--red); color:var(--red-lt); }
-.modal__fechar svg{ width:1.1rem; height:1.1rem; }
-.modal__resumo{ color:var(--muted); }
-.modal__cols{ display:grid; gap:1.75rem; grid-template-columns:1fr; }
-@media (min-width:720px){ .modal__cols{ grid-template-columns:1.15fr .85fr; } }
-.modal ol{ display:grid; gap:.5rem; counter-reset:etapa; font-size:.92rem; color:var(--muted); }
-.modal ol li{ position:relative; padding-left:1.7rem; }
-.modal ol li::before{
-  counter-increment:etapa; content:counter(etapa); position:absolute; left:0; top:.1em;
-  width:1.15rem; height:1.15rem; border-radius:50%; display:grid; place-items:center;
-  font-family:var(--mono); font-size:.62rem; color:var(--red); border:1px solid var(--line2);
-}
-.modal__acoes{ display:flex; flex-wrap:wrap; gap:.7rem; margin-top:.25rem; padding-top:1.4rem; border-top:1px solid var(--line); }
 .aviso{
   display:grid; gap:.35rem; padding:.85rem 1rem; border-radius:8px;
   border:1px solid color-mix(in srgb, var(--gold) 35%, transparent);
@@ -698,7 +732,7 @@ ul,ol{ margin:0; padding:0; list-style:none; }
 </head>
 <body data-abertura="barra">
 
-<!-- Ícones num sprite só: cada um aparece 2 ou 3 vezes (cartão, modal, painel),
+<!-- Ícones num sprite só: cada um aparece 2 ou 3 vezes (cartão, painel, rodapé),
      e repetir o <path> inteiro em cada uso engordaria o arquivo à toa. -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
   <symbol id="i-zap" viewBox="0 0 24 24"><path fill="currentColor" d="M17.5 14.4c-.3-.1-1.8-.9-2-1s-.5-.1-.7.1-.8 1-.9 1.2-.3.2-.6.1c-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.4-.5.3-.5c.1-.2 0-.4 0-.5L9 6.9c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5 2.5 1 3 .8 3.6.8.6-.1 1.8-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.2-.3-.3-.6-.4zM12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/></symbol>
@@ -797,7 +831,7 @@ ul,ol{ margin:0; padding:0; list-style:none; }
         <span class="giro" aria-label="montado, ajustado, corrigido e medido"><span class="giro__lista" aria-hidden="true"><span>montado</span><span>ajustado</span><span>corrigido</span><span>medido</span><span>montado</span></span></span><br>
         para o seu corpo.
       </h1>
-      <p class="lead">Nada de planilha de internet. Antes do primeiro treino vem uma <strong>avaliação completa</strong> — medidas, rotina, alimentação, histórico e lesões — e o treino sai daí. A cada 30 dias a gente mede de novo e ajusta.</p>
+      <p class="lead">Nada de planilha de internet. Antes do primeiro treino vem uma <strong>avaliação completa</strong>. A cada 30 dias, medida nova e planilha ajustada.</p>
       <div class="hero__cta">
         <a class="btn btn-red" href="avaliacao.html">
           <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-tela"/></svg>
@@ -806,9 +840,9 @@ ul,ol{ margin:0; padding:0; list-style:none; }
         <a class="btn btn-ghost" href="#antes-depois">Ver resultados</a>
       </div>
       <ul class="prova">
-        <li><b data-conta="3">3</b><span>frentes de atendimento</span></li>
-        <li><b data-conta="7">7</b><span>etapas na avaliação</span></li>
-        <li><b>30</b><span>dias até a reavaliação</span></li>
+        <li class="placar"><b data-conta="3">3</b><span>frentes</span></li>
+        <li class="placar"><b data-conta="7">7</b><span>etapas na avaliação</span></li>
+        <li class="placar"><b>30</b><span>dias por ciclo</span></li>
       </ul>
     </div>
 
@@ -860,59 +894,131 @@ ul,ol{ margin:0; padding:0; list-style:none; }
     <div class="secao__cab reveal">
       <p class="eyebrow">Serviços</p>
       <h2>Três jeitos de <span class="destaque">treinar comigo.</span></h2>
-      <p>Você pode começar só pela avaliação, treinar sozinho com a planilha na mão, ou me ter do lado corrigindo cada série. O que não muda é a avaliação antes e a reavaliação depois.</p>
+      <p>O que não muda nas três: avaliação antes, reavaliação a cada 30 dias.</p>
     </div>
 
     <div class="servs">
 
       <article class="serv reveal" id="consultoria" style="--i:0">
-        <header class="serv__topo"><span class="serv__tag">Frente 01</span><span class="serv__spec">online · planilha · WhatsApp</span></header>
+        <header class="serv__topo"><span class="serv__tag">Frente 01</span><span class="serv__spec">online · planilha</span></header>
         <div class="serv__icone"><svg aria-hidden="true"><use href="#i-tela"/></svg></div>
         <h3>Consultoria online</h3>
-        <p class="serv__resumo">Treino montado para o seu objetivo, o seu tempo disponível e o equipamento que você realmente tem — academia completa, condomínio ou um par de halteres em casa.</p>
-        <p class="serv__rotulo">O que inclui</p>
-        <ul class="serv__lista">
-          <li>Avaliação completa de 7 etapas antes de montar qualquer coisa</li>
-          <li>Planilha individual, com séries, repetições, carga e descanso</li>
-          <li>Vídeo de cada exercício, para não errar a execução</li>
-          <li>Ajuste da planilha quando a carga ou a rotina mudarem</li>
-          <li>Dúvida respondida no WhatsApp, sem esperar a próxima sessão</li>
-          <li>Reavaliação a cada 30 dias, com medidas comparadas</li>
-        </ul>
-        <button class="serv__mais" type="button" data-serv="consultoria">ver tudo →</button>
+        <p class="serv__resumo">Treino montado para o seu objetivo, o seu tempo e o equipamento que você tem de verdade.</p>
+        <details class="det">
+          <summary>Ver o que inclui</summary>
+          <div class="det__in">
+            <div>
+              <p class="serv__rotulo">Tudo que inclui</p>
+              <ul class="serv__lista" style="margin-top:.7rem">
+                <li>Avaliação completa de 7 etapas antes de montar qualquer coisa</li>
+                <li>Planilha individual com séries, repetições, carga e descanso</li>
+                <li>Divisão pelo número de dias que cabe na sua semana</li>
+                <li>Vídeo de cada exercício, para não errar a execução</li>
+                <li>Ajuste quando a carga, a rotina ou o objetivo mudarem</li>
+                <li>Dúvida respondida no WhatsApp, sem esperar sessão marcada</li>
+                <li>Reavaliação a cada 30 dias, com as medidas comparadas</li>
+              </ul>
+            </div>
+            <div>
+              <p class="serv__rotulo">Como funciona</p>
+              <ol style="margin-top:.7rem">
+                <li>Você preenche a avaliação online, em cerca de 10 minutos</li>
+                <li>Eu leio tudo e a gente alinha objetivo e prazo realista</li>
+                <li>Monto a planilha e mando com os vídeos de execução</li>
+                <li>A cada 30 dias reavaliamos e a planilha muda com o resultado</li>
+              </ol>
+            </div>
+            <div class="det__acoes">
+              <a class="btn btn-red" href="https://wa.me/5500000000000?text=Ol%C3%A1%20Wellerson%21%20Vim%20pelo%20site%20e%20quero%20saber%20sobre%20a%20consultoria%20online." target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-zap"/></svg>
+                Tirar dúvida no WhatsApp
+              </a>
+              <a class="btn btn-ghost" href="avaliacao.html">Fazer a avaliação</a>
+            </div>
+          </div>
+        </details>
       </article>
 
       <article class="serv reveal" id="presencial" style="--i:1">
-        <header class="serv__topo"><span class="serv__tag">Frente 02</span><span class="serv__spec">aula a aula · presencial</span></header>
+        <header class="serv__topo"><span class="serv__tag">Frente 02</span><span class="serv__spec">aula a aula</span></header>
         <div class="serv__icone"><svg aria-hidden="true"><use href="#i-halter"/></svg></div>
         <h3>Personal presencial</h3>
-        <p class="serv__resumo">Eu do seu lado, série por série. Para quem está começando do zero, voltando de lesão ou trava na hora de fazer sozinho — que é onde a maioria desiste.</p>
-        <p class="serv__rotulo">O que inclui</p>
-        <ul class="serv__lista">
-          <li>Aula individual ou em dupla, na academia ou em casa</li>
-          <li>Execução corrigida na hora, antes de virar vício</li>
-          <li>Progressão de carga conduzida, sem chute</li>
-          <li>Adaptação na hora quando o corpo não colabora no dia</li>
-          <li>Pode somar com a consultoria: presencial na semana, planilha no resto</li>
-        </ul>
-        <button class="serv__mais" type="button" data-serv="presencial">ver tudo →</button>
+        <p class="serv__resumo">Eu do seu lado, série por série. Para quem começa do zero, volta de lesão ou trava sozinho.</p>
+        <details class="det">
+          <summary>Ver o que inclui</summary>
+          <div class="det__in">
+            <div>
+              <p class="serv__rotulo">Tudo que inclui</p>
+              <ul class="serv__lista" style="margin-top:.7rem">
+                <li>Aula individual ou em dupla, na academia ou na sua casa</li>
+                <li>Execução corrigida na hora, antes de virar vício</li>
+                <li>Progressão de carga conduzida, sem chute e sem pressa demais</li>
+                <li>Treino adaptado no dia quando o corpo não colabora</li>
+                <li>Acompanhamento de quem está voltando de lesão ou cirurgia</li>
+                <li>Pode somar com a consultoria: presencial em parte da semana</li>
+              </ul>
+            </div>
+            <div>
+              <p class="serv__rotulo">Como funciona</p>
+              <ol style="margin-top:.7rem">
+                <li>Avaliação completa, igual a todo mundo — ela não é opcional</li>
+                <li>Definimos frequência, local e horário das sessões</li>
+                <li>Primeira aula focada em execução e nas cargas de partida</li>
+                <li>Reavaliação a cada 30 dias, com ajuste do plano</li>
+              </ol>
+            </div>
+            <div class="det__acoes">
+              <a class="btn btn-red" href="https://wa.me/5500000000000?text=Ol%C3%A1%20Wellerson%21%20Vim%20pelo%20site%20e%20quero%20saber%20sobre%20o%20personal%20presencial." target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-zap"/></svg>
+                Ver horários no WhatsApp
+              </a>
+              <a class="btn btn-ghost" href="avaliacao.html">Fazer a avaliação</a>
+            </div>
+          </div>
+        </details>
       </article>
 
       <article class="serv reveal" id="avaliacao-fisica" style="--i:2">
-        <header class="serv__topo"><span class="serv__tag">Frente 03</span><span class="serv__spec">medidas · dobras · IMC e TMB</span></header>
+        <header class="serv__topo"><span class="serv__tag">Frente 03</span><span class="serv__spec">medidas · IMC · TMB</span></header>
         <div class="serv__icone"><svg aria-hidden="true"><use href="#i-fita"/></svg></div>
         <h3>Avaliação física</h3>
-        <p class="serv__resumo">O ponto de partida. Sem número, "estou evoluindo" vira opinião — e é por isso que tanta gente desiste achando que não saiu do lugar quando saiu.</p>
-        <p class="serv__rotulo">O que inclui</p>
-        <ul class="serv__lista">
-          <li>Peso, altura, IMC e taxa metabólica basal calculados</li>
-          <li>Circunferências e dobras cutâneas para estimar composição corporal</li>
-          <li>Histórico de lesão, cirurgia, medicamento e restrição</li>
-          <li>Rotina real: sono, estresse, trabalho e alimentação</li>
-          <li>Devolutiva explicando o que cada número quer dizer</li>
-          <li>Reavaliação periódica para comparar, não para adivinhar</li>
-        </ul>
-        <button class="serv__mais" type="button" data-serv="avaliacao">ver tudo →</button>
+        <p class="serv__resumo">O ponto de partida. Sem número, "estou evoluindo" continua sendo opinião.</p>
+        <details class="det">
+          <summary>Ver o que inclui</summary>
+          <div class="det__in">
+            <div class="aviso">
+              <b>Vale saber</b>
+              <p>A avaliação levanta dados e estima composição corporal: ela orienta o treino, não substitui médico nem nutricionista. Onde entra nesse terreno, eu encaminho em vez de palpitar.</p>
+            </div>
+            <div>
+              <p class="serv__rotulo">Tudo que inclui</p>
+              <ul class="serv__lista" style="margin-top:.7rem">
+                <li>Peso, altura, IMC e taxa metabólica basal calculados</li>
+                <li>Circunferências: cintura, quadril, braço, coxa e panturrilha</li>
+                <li>Dobras cutâneas para estimar percentual de gordura</li>
+                <li>Histórico de lesão, cirurgia, medicamento e restrição</li>
+                <li>Rotina real: sono, estresse, tipo de trabalho e hidratação</li>
+                <li>Devolutiva explicando o que cada número significa no seu caso</li>
+              </ul>
+            </div>
+            <div>
+              <p class="serv__rotulo">Como funciona</p>
+              <ol style="margin-top:.7rem">
+                <li>Você preenche o formulário com os dados que já sabe</li>
+                <li>Fazemos as medidas que precisam de fita e adipômetro</li>
+                <li>Eu calculo, interpreto e monto a devolutiva</li>
+                <li>Repetimos a cada 30 dias para comparar</li>
+              </ol>
+            </div>
+            <div class="det__acoes">
+              <a class="btn btn-red" href="https://wa.me/5500000000000?text=Ol%C3%A1%20Wellerson%21%20Vim%20pelo%20site%20e%20quero%20fazer%20uma%20avalia%C3%A7%C3%A3o%20f%C3%ADsica." target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-zap"/></svg>
+                Marcar no WhatsApp
+              </a>
+              <a class="btn btn-ghost" href="avaliacao.html">Começar online</a>
+            </div>
+          </div>
+        </details>
       </article>
 
     </div>
@@ -925,7 +1031,7 @@ ul,ol{ margin:0; padding:0; list-style:none; }
     <div class="secao__cab reveal">
       <p class="eyebrow">Antes e depois</p>
       <h2>O antes é só <span class="destaque">o começo.</span></h2>
-      <p>Alunos reais, com tempo de acompanhamento declarado. Arraste a divisória para comparar — ou use as setas do teclado.</p>
+      <p>Arraste a divisória para comparar — ou use as setas do teclado.</p>
     </div>
 
     <div class="ad__destaque reveal">
@@ -945,15 +1051,17 @@ ul,ol{ margin:0; padding:0; list-style:none; }
 
       <div class="ad__legenda">
         <h3>Nome do aluno</h3>
-        <p>Resumo curto do caso: de onde ele partiu, o que travava antes e o que mudou na rotina. Duas ou três linhas bastam — a foto já conta o resto.</p>
+        <p>Uma ou duas linhas sobre o caso: de onde partiu e o que mudou. A foto conta o resto.</p>
         <div class="ad__dados">
-          <div><b>00</b><span>meses de acompanhamento</span></div>
-          <div><b>00 kg</b><span>de diferença</span></div>
-          <div><b>00 cm</b><span>na cintura</span></div>
+          <div class="placar"><b>00</b><span>meses</span></div>
+          <div class="placar"><b>00</b><span>kg de diferença</span></div>
+          <div class="placar"><b>00</b><span>cm na cintura</span></div>
         </div>
         <a class="btn btn-red" href="avaliacao.html">Quero começar o meu</a>
       </div>
     </div>
+
+    <div class="barra-div" aria-hidden="true"><i></i></div>
 
     <div class="casos">
       <article class="caso reveal" style="--i:0">
@@ -999,24 +1107,24 @@ ul,ol{ margin:0; padding:0; list-style:none; }
     <div class="secao__cab reveal">
       <p class="eyebrow">Como funciona</p>
       <h2>Do formulário ao <span class="destaque">primeiro treino.</span></h2>
-      <p>Sem enrolação e sem treino genérico caindo no seu WhatsApp meia hora depois do pagamento.</p>
+      <p>Sem treino genérico caindo no WhatsApp meia hora depois do pagamento.</p>
     </div>
     <div class="passos">
       <div class="passo reveal" style="--i:0">
         <h3>Você preenche a avaliação</h3>
-        <p>São 7 etapas: medidas, rotina, alimentação, histórico de treino, cabeça e saúde. Leva uns 10 minutos e é o que separa um treino seu de um treino qualquer.</p>
+        <p>Sete etapas, uns 10 minutos. É o que separa um treino seu de um treino qualquer.</p>
       </div>
       <div class="passo reveal" style="--i:1">
         <h3>Conversamos sobre o resultado</h3>
-        <p>Eu leio tudo antes de falar com você. A gente alinha objetivo, prazo realista e quantos dias por semana cabem de verdade na sua rotina.</p>
+        <p>Eu leio tudo antes. A gente alinha objetivo, prazo e quantos dias cabem na sua semana.</p>
       </div>
       <div class="passo reveal" style="--i:2">
         <h3>Recebe a planilha e começa</h3>
-        <p>Treino montado para o equipamento que você tem, com vídeo de cada exercício. Dúvida na execução se resolve no WhatsApp, no mesmo dia.</p>
+        <p>Montado para o equipamento que você tem, com vídeo de cada exercício.</p>
       </div>
       <div class="passo reveal" style="--i:3">
         <h3>Reavalia a cada 30 dias</h3>
-        <p>Medidas de novo, foto de novo, planilha ajustada. É aqui que o antes e depois aparece — e que dá para provar que funcionou.</p>
+        <p>Medida nova, foto nova, planilha ajustada. É aqui que o antes e depois aparece.</p>
       </div>
     </div>
   </div>
@@ -1034,8 +1142,8 @@ ul,ol{ margin:0; padding:0; list-style:none; }
     <div class="quem__txt">
       <p class="eyebrow reveal">Quem é</p>
       <h2 class="reveal" style="--i:1">Quem monta o treino <span class="destaque">é quem te acompanha.</span></h2>
-      <p class="reveal" style="--i:2">Sou o Wellerson Silva. Não trabalho com planilha de prateleira nem repasso aluno para estagiário: quem lê a sua avaliação, monta o seu treino e responde a sua dúvida no WhatsApp é a mesma pessoa.</p>
-      <p class="reveal" style="--i:3">Atendo quem está começando do zero, quem voltou depois de anos parado e quem já treina mas empacou. A avaliação existe justamente para separar esses três casos — porque treino igual para os três não funciona para nenhum.</p>
+      <p class="reveal" style="--i:2">Sou o Wellerson Silva. Quem lê a sua avaliação, monta o seu treino e responde no WhatsApp é a mesma pessoa — sem planilha de prateleira e sem repassar aluno para estagiário.</p>
+      <p class="reveal" style="--i:3">Atendo quem começa do zero, quem voltou depois de anos parado e quem já treina mas empacou. Treino igual para os três não funciona para nenhum.</p>
       <p class="cref reveal" style="--i:4">CREF 000000-G/PE</p>
       <ul class="chips reveal" style="--i:5">
         <li>Hipertrofia</li><li>Emagrecimento</li><li>Iniciantes</li><li>Retorno pós-lesão</li><li>Treino em casa</li><li>Avaliação física</li>
@@ -1054,38 +1162,38 @@ ul,ol{ margin:0; padding:0; list-style:none; }
     <div class="secao__cab reveal">
       <p class="eyebrow">Por que comigo</p>
       <h2>O que muda quando <span class="destaque">tem método.</span></h2>
-      <p>Treinar sem avaliar é chutar. E chute, no corpo, custa tempo — que é justamente o que ninguém quer perder.</p>
+      <p>Treinar sem avaliar é chutar. E chute, no corpo, custa tempo.</p>
     </div>
     <div class="difs">
       <div class="dif reveal" style="--i:0">
         <div class="dif__icone"><svg aria-hidden="true"><use href="#i-alvo"/></svg></div>
         <h3>Avaliação antes de tudo</h3>
-        <p>Sete etapas de dados antes do primeiro exercício. Sem isso, qualquer treino é palpite com nome bonito.</p>
+        <p>Sete etapas de dados antes do primeiro exercício.</p>
       </div>
       <div class="dif reveal" style="--i:1">
         <div class="dif__icone"><svg aria-hidden="true"><use href="#i-grafico"/></svg></div>
         <h3>Número, não achismo</h3>
-        <p>Medida de 30 em 30 dias. Você vê a evolução em centímetro e quilo, não só no espelho em dia bom.</p>
+        <p>Evolução em centímetro e quilo, não no espelho em dia bom.</p>
       </div>
       <div class="dif reveal" style="--i:2">
         <div class="dif__icone"><svg aria-hidden="true"><use href="#i-user"/></svg></div>
         <h3>Sem repasse para terceiros</h3>
-        <p>Quem lê sua avaliação, monta o treino e responde no WhatsApp é a mesma pessoa, do começo ao fim.</p>
+        <p>Do começo ao fim, é sempre a mesma pessoa.</p>
       </div>
       <div class="dif reveal" style="--i:3">
         <div class="dif__icone"><svg aria-hidden="true"><use href="#i-halter"/></svg></div>
         <h3>Treino com o que você tem</h3>
-        <p>Academia completa, prédio com três aparelhos ou halter em casa. O treino se adapta ao seu equipamento, não o contrário.</p>
+        <p>Academia completa, prédio com três aparelhos ou halter em casa.</p>
       </div>
       <div class="dif reveal" style="--i:4">
         <div class="dif__icone"><svg aria-hidden="true"><use href="#i-relogio"/></svg></div>
         <h3>Cabe na sua rotina</h3>
-        <p>A avaliação pergunta quanto tempo você tem de verdade. Treino de 90 minutos para quem tem 40 só gera culpa e desistência.</p>
+        <p>Treino de 90 minutos para quem tem 40 só gera culpa e desistência.</p>
       </div>
       <div class="dif reveal" style="--i:5">
         <div class="dif__icone"><svg aria-hidden="true"><use href="#i-check"/></svg></div>
         <h3>Lesão e limitação no plano</h3>
-        <p>Joelho, ombro, coluna, cirurgia antiga: entra na avaliação e o treino é montado em volta disso, não contra isso.</p>
+        <p>Joelho, ombro, coluna, cirurgia antiga: o treino é montado em volta disso.</p>
       </div>
     </div>
   </div>
@@ -1096,7 +1204,7 @@ ul,ol{ margin:0; padding:0; list-style:none; }
   <div class="container contato__in">
     <p class="eyebrow reveal">Contato</p>
     <h2 class="reveal" style="--i:1">Bora começar <span class="destaque">pelo começo?</span></h2>
-    <p class="reveal" style="--i:2">O primeiro passo é a avaliação. Leva uns 10 minutos, é de graça e já me dá tudo que preciso para saber se consigo te ajudar — e como.</p>
+    <p class="reveal" style="--i:2">O primeiro passo é a avaliação. Leva 10 minutos e é de graça.</p>
     <div class="contato__acoes reveal" style="--i:3">
       <a class="btn btn-red btn-xl" href="avaliacao.html">
         <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-tela"/></svg>
@@ -1135,31 +1243,6 @@ ul,ol{ margin:0; padding:0; list-style:none; }
   <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-zap"/></svg>
 </a>
 
-<dialog class="modal" id="modal" aria-labelledby="modal-titulo">
-  <div class="modal__in">
-    <div class="modal__topo">
-      <div><p class="modal__tag" id="modal-tag"></p><h3 id="modal-titulo"></h3><p class="modal__spec" id="modal-spec"></p></div>
-      <button class="modal__fechar" type="button" id="modal-fechar" aria-label="Fechar"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-x"/></svg></button>
-    </div>
-    <p class="modal__resumo" id="modal-resumo"></p>
-    <div class="aviso" id="modal-aviso" hidden><b>Vale saber</b><p id="modal-aviso-txt"></p></div>
-    <div class="modal__cols">
-      <div>
-        <p class="serv__rotulo">Tudo que inclui</p>
-        <ul class="serv__lista" id="modal-inclui" style="margin-top:.8rem"></ul>
-      </div>
-      <div style="display:grid;gap:1.5rem;align-content:start">
-        <div><p class="serv__rotulo">Como funciona</p><ol id="modal-como" style="margin-top:.8rem"></ol></div>
-        <div><p class="serv__rotulo">É para você se</p><ul class="chips" id="modal-sinais" style="margin-top:.8rem"></ul></div>
-      </div>
-    </div>
-    <div class="modal__acoes">
-      <a class="btn btn-red" id="modal-cta" href="avaliacao.html">Fazer a avaliação</a>
-      <a class="btn btn-ghost" id="modal-zap" href="#" target="_blank" rel="noopener">Tirar dúvida no WhatsApp</a>
-      <button class="btn btn-ghost" type="button" id="modal-voltar">Voltar</button>
-    </div>
-  </div>
-</dialog>
 
 <div class="toast" id="toast" role="status" aria-live="polite">Copiado</div>
 
@@ -1284,61 +1367,6 @@ ul,ol{ margin:0; padding:0; list-style:none; }
     var ob=new IntersectionObserver(function(en){ if(en[0].isIntersecting){ requestAnimationFrame(passo); ob.disconnect(); } });
     ob.observe(n);
   });
-})();
-
-/* Modal de serviço ------------------------------------------------------
-   O texto longo de cada frente mora aqui, não no HTML: o cartão mostra o resumo
-   e o modal abre o detalhe. Editar um serviço é editar este objeto. */
-(function(){
-  var ZAP='https://wa.me/5500000000000?text=';
-  var S={
-    consultoria:{
-      tag:'Frente 01', spec:'online · planilha · WhatsApp', titulo:'Consultoria online',
-      resumo:'Para quem consegue treinar sozinho, mas não sabe o que fazer — ou faz há meses a mesma coisa e parou de ver resultado. O treino é montado a partir da sua avaliação e ajustado conforme você evolui.',
-      inclui:['Avaliação completa de 7 etapas antes de montar qualquer coisa','Planilha individual com séries, repetições, carga inicial e descanso','Divisão de treino pelo número de dias que cabe na sua semana','Vídeo demonstrando cada exercício da sua planilha','Adaptação para o equipamento que você tem de verdade','Ajuste sempre que a carga, a rotina ou o objetivo mudarem','Dúvida respondida no WhatsApp, sem esperar sessão marcada','Reavaliação a cada 30 dias, com as medidas comparadas lado a lado'],
-      como:['Você preenche a avaliação online, que leva cerca de 10 minutos','Eu leio tudo e a gente conversa sobre objetivo e prazo realista','Monto a planilha e mando com os vídeos de execução','A cada 30 dias reavaliamos e a planilha muda com o resultado'],
-      sinais:['Treina sozinho e não sabe se está fazendo certo','Faz o mesmo treino há meses','Já pagou por planilha genérica','Tem pouco tempo e precisa render','Mora longe ou tem horário difícil'],
-      zap:'Olá Wellerson! Vim pelo site e quero saber sobre a consultoria online.'
-    },
-    presencial:{
-      tag:'Frente 02', spec:'aula a aula · presencial', titulo:'Personal presencial',
-      resumo:'Eu do seu lado, série por série. É o formato que mais segura quem está começando: a maior parte da desistência acontece nas primeiras semanas, quando a pessoa não sabe o que fazer e se sente perdida na academia.',
-      inclui:['Aula individual ou em dupla, na academia ou na sua casa','Execução corrigida na hora, antes de virar vício difícil de tirar','Progressão de carga conduzida, sem chute e sem pressa demais','Treino adaptado no dia quando o corpo não colabora','Acompanhamento de quem está voltando de lesão ou cirurgia','Pode somar com a consultoria: presencial em parte da semana, planilha no resto'],
-      como:['Avaliação completa, igual a todo mundo — ela não é opcional','Definimos frequência, local e horário das sessões','Primeira aula focada em execução e em achar as cargas de partida','Reavaliação a cada 30 dias, com ajuste do plano'],
-      sinais:['Nunca treinou e tem medo de se machucar','Voltou depois de anos parado','Está voltando de lesão ou cirurgia','Trava na hora de treinar sozinho','Quer alguém cobrando presença'],
-      zap:'Olá Wellerson! Vim pelo site e quero saber sobre o personal presencial.'
-    },
-    avaliacao:{
-      tag:'Frente 03', spec:'medidas · dobras · IMC e TMB', titulo:'Avaliação física',
-      resumo:'O ponto de partida de tudo, e também um serviço à parte para quem só quer saber onde está. Sem número inicial, daqui a três meses "acho que melhorou" continua sendo achismo.',
-      aviso:'A avaliação levanta dados e estima composição corporal — ela orienta o treino, não substitui consulta médica nem nutricional. Prescrição de dieta é atribuição de nutricionista, e exame clínico é do médico. Onde entrar nesse terreno, eu encaminho em vez de palpitar.',
-      inclui:['Peso, altura, IMC e taxa metabólica basal calculados','Circunferências: cintura, quadril, braço, coxa e panturrilha','Dobras cutâneas para estimar percentual de gordura','Histórico de lesão, cirurgia, medicamento e restrição alimentar','Rotina real: sono, nível de estresse, tipo de trabalho e hidratação','Relação com o exercício: o que já tentou e por que parou','Devolutiva explicando o que cada número significa no seu caso','Reavaliação periódica com comparação lado a lado'],
-      como:['Você preenche o formulário online com os dados que já sabe','Fazemos as medidas que precisam de fita e adipômetro','Eu calculo, interpreto e monto a devolutiva','Repetimos o processo a cada 30 dias para comparar'],
-      sinais:['Não sabe por onde começar','Quer saber se está perdendo gordura ou músculo','Treina mas nunca mediu nada','Vai começar e quer o ponto de partida registrado','Quer prova concreta de que evoluiu'],
-      zap:'Olá Wellerson! Vim pelo site e quero fazer uma avaliação física.'
-    }
-  };
-  var modal=document.getElementById('modal'); if(!modal||!modal.showModal) return;
-  var q=function(id){ return document.getElementById(id); };
-  function lista(el, itens){
-    el.innerHTML='';
-    itens.forEach(function(t){ var li=document.createElement('li'); li.textContent=t; el.appendChild(li); });
-  }
-  function abrir(chave){
-    var s=S[chave]; if(!s) return;
-    q('modal-tag').textContent=s.tag; q('modal-spec').textContent=s.spec;
-    q('modal-titulo').textContent=s.titulo; q('modal-resumo').textContent=s.resumo;
-    q('modal-aviso').hidden=!s.aviso;
-    if(s.aviso) q('modal-aviso-txt').textContent=s.aviso;
-    lista(q('modal-inclui'), s.inclui); lista(q('modal-como'), s.como); lista(q('modal-sinais'), s.sinais);
-    q('modal-zap').href=ZAP+encodeURIComponent(s.zap);
-    modal.showModal();
-  }
-  document.querySelectorAll('[data-serv]').forEach(function(b){ b.addEventListener('click', function(){ abrir(b.getAttribute('data-serv')); }); });
-  q('modal-fechar').addEventListener('click', function(){ modal.close(); });
-  q('modal-voltar').addEventListener('click', function(){ modal.close(); });
-  /* Clique no <dialog> em si (não no conteúdo) é clique no backdrop: fecha. */
-  modal.addEventListener('click', function(e){ if(e.target===modal) modal.close(); });
 })();
 
 /* Copiar e-mail --------------------------------------------------------- */

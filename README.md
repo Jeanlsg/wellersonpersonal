@@ -127,19 +127,44 @@ rolagem vertical da página livre no celular.
 
 ## Editar os serviços
 
-O texto curto está no `<article class="serv">`. O texto longo — o que abre no
-modal — está no objeto `S`, no script ao final do `index.html`:
+Cada frente é um `<article class="serv">` no `index.html`. A frente da carta
+mostra pouca coisa de propósito — tag, ícone, título e uma linha de resumo. Todo
+o detalhe vive num `<details class="det">` dentro da própria carta:
 
-| Campo | O que é |
-| --- | --- |
-| `tag`, `spec`, `titulo` | Cabeçalho do modal |
-| `resumo` | Parágrafo de abertura |
-| `aviso` | Bloco amarelo de ressalva. **Opcional** — hoje só a avaliação física usa, para deixar claro que ela não substitui médico nem nutricionista. |
-| `inclui`, `como`, `sinais` | As três listas |
-| `zap` | Mensagem já preenchida no WhatsApp |
+```html
+<details class="det">
+  <summary>Ver o que inclui</summary>
+  <div class="det__in">
+    ... listas ...
+    <div class="det__acoes">
+      <a class="btn btn-red" href="https://wa.me/...">Tirar dúvida no WhatsApp</a>
+      <a class="btn btn-ghost" href="avaliacao.html">Fazer a avaliação</a>
+    </div>
+  </div>
+</details>
+```
 
-O `id` do `<article>`, o `data-serv` do botão e a chave em `S` precisam ser o
-mesmo texto — é assim que o botão acha o conteúdo.
+É `<details>` nativo, não JavaScript: clique, teclado e leitor de tela já
+funcionam, o conteúdo continua no HTML (e indexável) mesmo sem JS, e não há
+estado para sincronizar. O `align-items:start` no `.servs` é o que impede as
+cartas vizinhas de esticarem quando uma abre.
+
+Cada carta tem o próprio link de WhatsApp, com a mensagem já preenchida para
+aquele serviço. Ao trocar o número, o `sed` da seção de placeholders pega todos.
+
+## O tema "placar de treino"
+
+Três peças carregam a temática, e as duas primeiras são reusadas na ficha de
+avaliação para as duas páginas não parecerem de projetos diferentes:
+
+| Peça | O que é | Onde |
+| --- | --- | --- |
+| `.placar` | Dígito grande num painel preto com risco de varredura e brilho vermelho | Números do hero, do antes e depois, e os `.metric-card` da ficha |
+| Máscara de blocos | `repeating-linear-gradient` na barra de progresso, que passa a ler como anilha empilhada em vez de linha contínua | Progresso do topo, nas duas páginas |
+| `.barra-div` | Divisória que é uma barra com anilha nas pontas | Entre o comparador e a grade de casos |
+
+Os números usam `font-variant-numeric: tabular-nums`, senão os dígitos dançam de
+largura quando o contador anima.
 
 ## Rodar local
 
