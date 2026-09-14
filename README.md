@@ -182,6 +182,10 @@ Fica só no navegador de quem preencheu: nada é enviado antes de ela chegar ao
 fim. Se o armazenamento estiver bloqueado (aba anônima, configuração do
 navegador), a gravação falha em silêncio e o formulário segue funcionando.
 
+O botão **Limpar respostas** fica no cabeçalho, ao lado do selo "Avaliação
+Completa", e só aparece quando existe rascunho — a própria presença dele já
+avisa que há algo salvo.
+
 Duas guardas que valem conhecer antes de mexer:
 
 - `goTo()` grava a cada troca de etapa. Por isso `salvarRascunho()` **não
@@ -194,9 +198,21 @@ Duas guardas que valem conhecer antes de mexer:
 A etapa de resultado não é restaurável — os números dela dependem do cálculo, e o
 retorno para no último passo de preenchimento.
 
+### O resultado é uma janela, não uma etapa
+
+São **6 etapas** de preenchimento. O diagnóstico abre numa janela (`<dialog>`)
+que pode ser fechada — dá para voltar ao formulário, ajustar uma resposta e
+gerar de novo, sem recarregar.
+
+Dois detalhes de quem for mexer: o `margin:auto` na `.modal-res` é o que
+centraliza a janela (o reset `*{margin:0}` do topo do arquivo zera o padrão do
+`<dialog>`), e a regra de impressão usa `body:has(#modalResultado[open])` para
+mandar só a janela ao papel. Em navegador sem `:has()`, imprime demais — não
+deixa de imprimir.
+
 ### Enviar o resultado
 
-Ao chegar no resultado, a ficha completa já vai por e-mail, sozinha, pela função
+Ao gerar o diagnóstico, a ficha completa já vai por e-mail, sozinha, pela função
 da Netlify. O botão **Enviar no WhatsApp** manda um resumo direto para o
 Wellerson: nome, objetivo, peso e meta, os números calculados, rotina de treino e
 o bloco de saúde.
