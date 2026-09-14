@@ -30,42 +30,37 @@ para alguém preencher, reenvie apontando direto para `/avaliacao.html`.
 
 O cabeçalho do formulário agora é um link de volta para o site.
 
-## ⚠️ Antes de publicar: dados que ainda são placeholder
+## Contato
 
-| Placeholder | Onde | O que é |
-| --- | --- | --- |
-| `5500000000000` | 5× no `index.html` | Número do WhatsApp nos links `wa.me`, no formato DDI+DDD+número, só dígitos |
-| `(00) 00000-0000` | 2× | O número como o visitante lê na tela |
-| `SEU-INSTAGRAM` | 4× | Perfil do Instagram |
-| `CREF 000000-G/PE` | 2× | Registro no CREF, no rodapé e na seção "Quem é" |
+| Onde | Valor |
+| --- | --- |
+| WhatsApp | `558788291247` nos links `wa.me`, exibido como `(87) 8829-1247` |
+| Instagram | [@wellerson.prof](https://www.instagram.com/wellerson.prof/) |
+| E-mail | `welllersonpersonal@gmail.com` — com três L, como já estava no código |
 
-Trocando tudo de uma vez, na raiz do projeto. O `-i ''` é a forma do `sed` do
-macOS; no Linux é só `-i`:
+### ⚠️ Duas coisas ainda pendentes
+
+**O CREF está como `000000-G/PE`**, em 2 lugares do `index.html` (rodapé e seção
+"Quem é"). A Resolução CONFEF exige o número de registro na divulgação de serviço
+de educação física — enquanto estiver assim, o site afirma um registro que não
+existe.
 
 ```sh
-ZAP=5587999999999          # DDI+DDD+número, só dígitos
-ZAP_TXT='(87) 99999-9999'  # como aparece na tela
-INSTA=wellersonpersonal    # sem o @
-CREF='CREF 123456-G/PE'
-
-sed -i '' \
-  -e "s/5500000000000/$ZAP/g" \
-  -e "s/(00) 00000-0000/$ZAP_TXT/g" \
-  -e "s/SEU-INSTAGRAM/$INSTA/g" \
-  -e "s|CREF 000000-G/PE|$CREF|g" \
-  index.html
-
-grep -n '5500000000000\|(00) 00000-0000\|SEU-INSTAGRAM\|000000-G' index.html || echo 'nenhum placeholder restante'
+sed -i '' "s|CREF 000000-G/PE|CREF 123456-G/PE|g" index.html
 ```
 
-**O CREF não é opcional.** A Resolução CONFEF exige o número de registro na
-divulgação de serviço de profissional de educação física. Enquanto estiver
-`000000`, o site está afirmando um registro que não existe.
+**O número de WhatsApp tem 8 dígitos** (`8829-1247`). Desde 2016 todo celular no
+Brasil tem 9 dígitos e começa com 9, então o mais provável é que falte um 9:
+`98829-1247`. Como foi assim que o número chegou, está assim no site — mas vale
+mandar uma mensagem para `wa.me/558788291247` e confirmar que chega. Se não
+chegar, o conserto é:
 
-**Confira o e-mail.** O site e a função serverless usam
-`welllersonpersonal@gmail.com`, com três L, que é o que já estava no código. Pode
-estar certo — mas se for engano de digitação, toda avaliação preenchida está indo
-para uma caixa que não existe, sem erro visível para quem preencheu.
+```sh
+sed -i '' -e "s/558788291247/5587988291247/g" -e "s/(87) 8829-1247/(87) 98829-1247/g" index.html
+```
+
+Se um dia o número ou o perfil mudarem, os padrões a procurar são
+`558788291247`, `(87) 8829-1247` e `wellerson.prof`.
 
 ## A marca no site
 
@@ -129,37 +124,35 @@ rolagem vertical da página livre no celular.
 ## Editar os serviços
 
 Cada frente é um `<article class="serv">` no `index.html`. A frente da carta
-mostra pouca coisa de propósito — tag, ícone, título e uma linha de resumo. Todo
-o detalhe vive num `<details class="det">` dentro da própria carta:
+mostra pouca coisa de propósito — tag, ícone, título e uma linha de resumo. O
+detalhe fica logo abaixo, num `<div class="serv__detalhe" hidden>` dentro da
+própria carta, e **a janela empresta esse conteúdo na hora de abrir**:
 
 ```html
-<details class="det">
-  <summary>Ver o que inclui</summary>
-  <div class="det__in">
+<article class="serv" id="consultoria">
+  ... tag, ícone, título, resumo ...
+  <button class="serv__mais" type="button">Ver o que inclui</button>
+  <div class="serv__detalhe" hidden>
     ... listas ...
     <div class="det__acoes">
       <a class="btn btn-red" href="https://wa.me/...">Tirar dúvida no WhatsApp</a>
       <a class="btn btn-ghost" href="avaliacao.html">Fazer a avaliação</a>
     </div>
   </div>
-</details>
+</article>
 ```
 
-É `<details>` nativo: clique, teclado e leitor de tela já funcionam, o conteúdo
-continua no HTML (e indexável) mesmo sem JS, e não há estado para sincronizar. O
-`align-items:start` no `.servs` é o que impede as cartas vizinhas de esticarem
-quando uma abre.
+Manter o conteúdo no HTML, em vez de num objeto JavaScript, tem duas vantagens:
+ele continua indexável pelo Google, e o `<noscript>` no fim do `<head>` faz o
+detalhe aparecer na própria carta se o JavaScript falhar — aí o botão que abriria
+a janela some, porque não haveria janela.
 
-Um trecho curto de JavaScript faz **a carta inteira** abrir e fechar, não só o
-"Ver o que inclui". Ele ignora três casos, senão atrapalharia mais do que ajuda:
-clique em link ou botão, clique no próprio `<summary>` (que já tem o
-comportamento nativo) e clique dentro do detalhe já aberto — este último para
-ninguém fechar a carta tentando ler a lista. Também não alterna quando há texto
-selecionado, para arrastar e copiar não virar um fecha-abre. O `<summary>`
-continua sendo o controle de verdade: é ele que responde ao teclado.
+O clique funciona em **qualquer ponto da carta**, não só no botão. Ele ignora
+clique em link e não dispara quando há texto selecionado, para arrastar e copiar
+não virar um abre-janela.
 
 Cada carta tem o próprio link de WhatsApp, com a mensagem já preenchida para
-aquele serviço. Ao trocar o número, o `sed` da seção de placeholders pega todos.
+aquele serviço.
 
 ## O tema "placar de treino"
 

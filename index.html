@@ -372,8 +372,6 @@ ul,ol{ margin:0; padding:0; list-style:none; }
 }
 .serv{ cursor:pointer; }
 .serv:hover{ border-color:color-mix(in srgb, var(--red) 45%, var(--line)); transform:translateY(-4px); box-shadow:var(--brilho); }
-/* Dentro do detalhe aberto o cursor volta ao normal: ali o clique não alterna. */
-.serv .det__in{ cursor:auto; }
 .serv:hover::before{ width:70%; }
 .serv__topo{ display:flex; align-items:center; justify-content:space-between; gap:.75rem; flex-wrap:wrap; }
 .serv__tag{ font-family:var(--mono); font-size:.68rem; letter-spacing:.16em; text-transform:uppercase; color:var(--red); }
@@ -389,31 +387,42 @@ ul,ol{ margin:0; padding:0; list-style:none; }
 .serv__lista{ display:grid; gap:.45rem; font-size:.92rem; color:var(--muted); }
 .serv__lista li{ position:relative; padding-left:1.15rem; }
 .serv__lista li::before{ content:"›"; position:absolute; left:0; top:-.05em; color:var(--red); font-family:var(--mono); }
-/* Detalhe que abre dentro da própria carta. É um <details> nativo: clique,
-   teclado e leitor de tela já funcionam, e o conteúdo continua no HTML mesmo
-   sem JavaScript — o que também o mantém indexável. */
-.det{ margin-top:.3rem; }
-.det > summary{
-  list-style:none; cursor:pointer; display:inline-flex; align-items:center; gap:.5rem;
-  padding:.55rem .9rem; border-radius:5px; border:1px solid var(--line2);
+/* Botão da carta e a janela que ele abre ------------------------------- */
+.serv__mais{
+  justify-self:start; margin-top:.3rem; padding:.55rem .9rem; border-radius:5px;
+  border:1px solid var(--line2); background:transparent; cursor:pointer;
   font-family:var(--mono); font-size:.76rem; color:var(--light);
   transition:border-color .2s, color .2s, background .2s;
 }
-.det > summary::-webkit-details-marker{ display:none; }
-.det > summary:hover{ border-color:var(--red); color:var(--red-lt); background:rgba(232,39,42,.07); }
-.det > summary::after{ content:"+"; font-size:1.1em; line-height:1; color:var(--red); }
-.det[open] > summary::after{ content:"–"; }
-.det[open] > summary{ border-color:var(--red); color:var(--red-lt); }
-.det__in{ display:grid; gap:1rem; padding-top:1.1rem; animation:abrirDet .28s ease both; }
-@keyframes abrirDet{ from{ opacity:0; transform:translateY(-6px); } to{ opacity:1; transform:none; } }
-.det ol{ display:grid; gap:.45rem; counter-reset:etapa; font-size:.9rem; color:var(--muted); }
-.det ol li{ position:relative; padding-left:1.7rem; }
-.det ol li::before{
+.serv:hover .serv__mais{ border-color:var(--red); color:var(--red-lt); background:rgba(232,39,42,.07); }
+
+.modal{
+  width:min(52rem, 100% - 2rem); max-height:min(84dvh, 46rem); padding:0; border:1px solid var(--line2);
+  border-radius:10px; background:var(--dark2); color:var(--light); box-shadow:var(--sombra); overflow:auto;
+  background-image:url("bg/grao.png"), url("bg/chapa.png");
+}
+.modal::backdrop{ background:rgba(5,5,5,.82); backdrop-filter:blur(4px); }
+.modal__in{ display:grid; gap:1.4rem; padding:clamp(1.4rem,4vw,2.2rem); }
+.modal__topo{ display:flex; gap:1rem; align-items:start; justify-content:space-between; }
+.modal__tag{ font-family:var(--mono); font-size:.68rem; letter-spacing:.16em; text-transform:uppercase; color:var(--red); }
+.modal__topo h3{ font-size:clamp(1.8rem,4vw,2.4rem); margin-block:.25rem; }
+.modal__spec{ font-family:var(--mono); font-size:.72rem; color:var(--muted); }
+.modal__fechar{ width:2.4rem; height:2.4rem; flex:none; border-radius:6px; border:1px solid var(--line2); background:transparent; cursor:pointer; display:grid; place-items:center; }
+.modal__fechar:hover{ border-color:var(--red); color:var(--red-lt); }
+.modal__fechar svg{ width:1.1rem; height:1.1rem; }
+/* O corpo recebe o conteúdo que já está na carta, então herda as mesmas regras
+   de lista e de numeração. */
+.modal__corpo{ display:grid; gap:1.4rem; }
+@media (min-width:760px){ .modal__corpo{ grid-template-columns:1.15fr .85fr; align-items:start; } }
+.modal__corpo .det__acoes{ grid-column:1/-1; display:flex; flex-wrap:wrap; gap:.7rem; padding-top:1.2rem; border-top:1px solid var(--line); }
+.modal__corpo .aviso{ grid-column:1/-1; }
+.modal__corpo ol{ display:grid; gap:.45rem; counter-reset:etapa; font-size:.9rem; color:var(--muted); }
+.modal__corpo ol li{ position:relative; padding-left:1.7rem; }
+.modal__corpo ol li::before{
   counter-increment:etapa; content:counter(etapa); position:absolute; left:0; top:.1em;
   width:1.15rem; height:1.15rem; border-radius:3px; display:grid; place-items:center;
   font-family:var(--mono); font-size:.6rem; color:var(--red); border:1px solid var(--line2);
 }
-.det__acoes{ display:flex; flex-wrap:wrap; gap:.6rem; padding-top:.3rem; }
 
 /* =====================================================================
    ANTES E DEPOIS
@@ -710,11 +719,21 @@ ul,ol{ margin:0; padding:0; list-style:none; }
 .bar__kg i:nth-child(4){ opacity:var(--k3); }
 .bar__kg i:nth-child(5){ opacity:var(--k4); }
 
-.bar__eixo{ display:flex; align-items:center; justify-content:center; height:42cqh; }
+/* As anilhas ficam nas pontas e o meio da barra fica liso, que é onde se pega —
+   como numa barra de verdade. Cada lado carrega de dentro para fora: a maior
+   encostada no centro, as menores em direção à presilha. */
+.bar__eixo{
+  display:flex; align-items:center; justify-content:space-between; height:42cqh;
+  /* width:100% é necessário: o .bar é um grid com justify-items:center, então
+     sem isso o eixo encolhe até o conteúdo e o space-between não separa nada. */
+  width:100%;
+}
+.lado{ display:flex; align-items:center; z-index:1; }
 /* A haste cresce do centro para os lados junto com --in. */
 .bar__haste{
   position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
-  width:calc(var(--in) * 74cqw); height:2.6cqh; border-radius:2px;
+  /* A haste vai de ponta a ponta e passa por baixo dos dois grupos de anilha. */
+  width:calc(var(--in) * 90cqw); height:2.6cqh; border-radius:2px;
   background:linear-gradient(180deg,#9a9a9a,#5e5e5e 45%,#3a3a3a);
 }
 .anilha{
@@ -761,6 +780,10 @@ ul,ol{ margin:0; padding:0; list-style:none; }
      marcadores da ficha, que acendem por animação, já entram acesos. */
   .abertura{ display:none; }
   .etapa{ --on:1; animation:none; }
+  /* Sem JS não há janela para abrir: o detalhe aparece na própria carta e o
+     botão que abriria a janela some. */
+  .serv__detalhe[hidden]{ display:grid !important; gap:1.2rem; padding-top:1.1rem; }
+  .serv__mais{ display:none; }
 </style></noscript>
 </head>
 <body data-abertura="barra">
@@ -791,10 +814,14 @@ ul,ol{ margin:0; padding:0; list-style:none; }
       <p class="bar__topo">WS · carga <span class="bar__kg"><i>20</i><i>40</i><i>60</i><i>80</i><i>100</i></span> kg</p>
       <div class="bar__eixo">
         <span class="bar__haste"></span>
-        <span class="presilha"></span>
-        <span class="anilha anilha--e a4"></span><span class="anilha anilha--e a3"></span><span class="anilha anilha--e a2"></span><span class="anilha anilha--e a1"></span>
-        <span class="anilha anilha--d a1"></span><span class="anilha anilha--d a2"></span><span class="anilha anilha--d a3"></span><span class="anilha anilha--d a4"></span>
-        <span class="presilha"></span>
+        <span class="lado lado--e">
+          <span class="presilha"></span>
+          <span class="anilha anilha--e a4"></span><span class="anilha anilha--e a3"></span><span class="anilha anilha--e a2"></span><span class="anilha anilha--e a1"></span>
+        </span>
+        <span class="lado lado--d">
+          <span class="anilha anilha--d a1"></span><span class="anilha anilha--d a2"></span><span class="anilha anilha--d a3"></span><span class="anilha anilha--d a4"></span>
+          <span class="presilha"></span>
+        </span>
       </div>
       <div class="bar__nome"><span class="logo logo--icone"></span><span>Wellerson Silva</span></div>
     </div>
@@ -937,9 +964,8 @@ ul,ol{ margin:0; padding:0; list-style:none; }
         <div class="serv__icone"><svg aria-hidden="true"><use href="#i-tela"/></svg></div>
         <h3>Consultoria online</h3>
         <p class="serv__resumo">Treino montado para o seu objetivo, o seu tempo e o equipamento que você tem de verdade.</p>
-        <details class="det">
-          <summary>Ver o que inclui</summary>
-          <div class="det__in">
+        <button class="serv__mais" type="button">Ver o que inclui</button>
+        <div class="serv__detalhe" hidden>
             <div>
               <p class="serv__rotulo">Tudo que inclui</p>
               <ul class="serv__lista" style="margin-top:.7rem">
@@ -962,14 +988,13 @@ ul,ol{ margin:0; padding:0; list-style:none; }
               </ol>
             </div>
             <div class="det__acoes">
-              <a class="btn btn-red" href="https://wa.me/5500000000000?text=Ol%C3%A1%20Wellerson%21%20Vim%20pelo%20site%20e%20quero%20saber%20sobre%20a%20consultoria%20online." target="_blank" rel="noopener">
+              <a class="btn btn-red" href="https://wa.me/558788291247?text=Ol%C3%A1%20Wellerson%21%20Vim%20pelo%20site%20e%20quero%20saber%20sobre%20a%20consultoria%20online." target="_blank" rel="noopener">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-zap"/></svg>
                 Tirar dúvida no WhatsApp
               </a>
               <a class="btn btn-ghost" href="avaliacao.html">Fazer a avaliação</a>
             </div>
-          </div>
-        </details>
+        </div>
       </article>
 
       <article class="serv reveal" id="presencial" style="--i:1">
@@ -977,9 +1002,8 @@ ul,ol{ margin:0; padding:0; list-style:none; }
         <div class="serv__icone"><svg aria-hidden="true"><use href="#i-halter"/></svg></div>
         <h3>Personal presencial</h3>
         <p class="serv__resumo">Eu do seu lado, série por série. Para quem começa do zero, volta de lesão ou trava sozinho.</p>
-        <details class="det">
-          <summary>Ver o que inclui</summary>
-          <div class="det__in">
+        <button class="serv__mais" type="button">Ver o que inclui</button>
+        <div class="serv__detalhe" hidden>
             <div>
               <p class="serv__rotulo">Tudo que inclui</p>
               <ul class="serv__lista" style="margin-top:.7rem">
@@ -1001,14 +1025,13 @@ ul,ol{ margin:0; padding:0; list-style:none; }
               </ol>
             </div>
             <div class="det__acoes">
-              <a class="btn btn-red" href="https://wa.me/5500000000000?text=Ol%C3%A1%20Wellerson%21%20Vim%20pelo%20site%20e%20quero%20saber%20sobre%20o%20personal%20presencial." target="_blank" rel="noopener">
+              <a class="btn btn-red" href="https://wa.me/558788291247?text=Ol%C3%A1%20Wellerson%21%20Vim%20pelo%20site%20e%20quero%20saber%20sobre%20o%20personal%20presencial." target="_blank" rel="noopener">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-zap"/></svg>
                 Ver horários no WhatsApp
               </a>
               <a class="btn btn-ghost" href="avaliacao.html">Fazer a avaliação</a>
             </div>
-          </div>
-        </details>
+        </div>
       </article>
 
       <article class="serv reveal" id="avaliacao-fisica" style="--i:2">
@@ -1016,9 +1039,8 @@ ul,ol{ margin:0; padding:0; list-style:none; }
         <div class="serv__icone"><svg aria-hidden="true"><use href="#i-fita"/></svg></div>
         <h3>Avaliação física</h3>
         <p class="serv__resumo">O ponto de partida. Sem número, "estou evoluindo" continua sendo opinião.</p>
-        <details class="det">
-          <summary>Ver o que inclui</summary>
-          <div class="det__in">
+        <button class="serv__mais" type="button">Ver o que inclui</button>
+        <div class="serv__detalhe" hidden>
             <div class="aviso">
               <b>Vale saber</b>
               <p>A avaliação levanta dados e estima composição corporal: ela orienta o treino, não substitui médico nem nutricionista. Onde entra nesse terreno, eu encaminho em vez de palpitar.</p>
@@ -1044,14 +1066,13 @@ ul,ol{ margin:0; padding:0; list-style:none; }
               </ol>
             </div>
             <div class="det__acoes">
-              <a class="btn btn-red" href="https://wa.me/5500000000000?text=Ol%C3%A1%20Wellerson%21%20Vim%20pelo%20site%20e%20quero%20fazer%20uma%20avalia%C3%A7%C3%A3o%20f%C3%ADsica." target="_blank" rel="noopener">
+              <a class="btn btn-red" href="https://wa.me/558788291247?text=Ol%C3%A1%20Wellerson%21%20Vim%20pelo%20site%20e%20quero%20fazer%20uma%20avalia%C3%A7%C3%A3o%20f%C3%ADsica." target="_blank" rel="noopener">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-zap"/></svg>
                 Marcar no WhatsApp
               </a>
               <a class="btn btn-ghost" href="avaliacao.html">Começar online</a>
             </div>
-          </div>
-        </details>
+        </div>
       </article>
 
     </div>
@@ -1181,7 +1202,7 @@ ul,ol{ margin:0; padding:0; list-style:none; }
       <ul class="chips reveal" style="--i:5">
         <li>Hipertrofia</li><li>Emagrecimento</li><li>Iniciantes</li><li>Retorno pós-lesão</li><li>Treino em casa</li><li>Avaliação física</li>
       </ul>
-      <a class="btn btn-red reveal" style="--i:6" href="https://wa.me/5500000000000?text=Ol%C3%A1%20Wellerson!%20Vim%20pelo%20site%20e%20quero%20saber%20sobre%20o%20acompanhamento." target="_blank" rel="noopener">
+      <a class="btn btn-red reveal" style="--i:6" href="https://wa.me/558788291247?text=Ol%C3%A1%20Wellerson!%20Vim%20pelo%20site%20e%20quero%20saber%20sobre%20o%20acompanhamento." target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-zap"/></svg>
         Falar direto comigo
       </a>
@@ -1243,11 +1264,11 @@ ul,ol{ margin:0; padding:0; list-style:none; }
         <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-tela"/></svg>
         Fazer a avaliação
       </a>
-      <a class="btn btn-ghost btn-xl" href="https://wa.me/5500000000000?text=Ol%C3%A1%20Wellerson!%20Vim%20pelo%20site%20e%20quero%20saber%20sobre%20o%20acompanhamento." target="_blank" rel="noopener">
+      <a class="btn btn-ghost btn-xl" href="https://wa.me/558788291247?text=Ol%C3%A1%20Wellerson!%20Vim%20pelo%20site%20e%20quero%20saber%20sobre%20o%20acompanhamento." target="_blank" rel="noopener">
         <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-zap"/></svg>
-        (00) 00000-0000
+        (87) 8829-1247
       </a>
-      <a class="btn btn-ghost btn-xl" href="https://www.instagram.com/SEU-INSTAGRAM" target="_blank" rel="noopener">@SEU-INSTAGRAM</a>
+      <a class="btn btn-ghost btn-xl" href="https://www.instagram.com/wellerson.prof" target="_blank" rel="noopener">@wellerson.prof</a>
     </div>
     <div class="copiavel reveal" style="--i:4">
       <span>E-mail</span>
@@ -1267,15 +1288,26 @@ ul,ol{ margin:0; padding:0; list-style:none; }
     </div>
     <div class="rodape__meta">
       <span>&copy; 2026 WS Consultoria &middot; Wellerson Silva</span>
-      <span><a href="https://wa.me/5500000000000?text=Ol%C3%A1%20Wellerson!%20Vim%20pelo%20site%20e%20quero%20saber%20sobre%20o%20acompanhamento." target="_blank" rel="noopener">(00) 00000-0000</a> &middot; <a href="mailto:welllersonpersonal@gmail.com">welllersonpersonal@gmail.com</a> &middot; <a href="https://www.instagram.com/SEU-INSTAGRAM" target="_blank" rel="noopener">@SEU-INSTAGRAM</a></span>
+      <span><a href="https://wa.me/558788291247?text=Ol%C3%A1%20Wellerson!%20Vim%20pelo%20site%20e%20quero%20saber%20sobre%20o%20acompanhamento." target="_blank" rel="noopener">(87) 8829-1247</a> &middot; <a href="mailto:welllersonpersonal@gmail.com">welllersonpersonal@gmail.com</a> &middot; <a href="https://www.instagram.com/wellerson.prof" target="_blank" rel="noopener">@wellerson.prof</a></span>
     </div>
   </div>
 </footer>
 
-<a class="zap" href="https://wa.me/5500000000000?text=Ol%C3%A1%20Wellerson!%20Vim%20pelo%20site%20e%20quero%20saber%20sobre%20o%20acompanhamento." target="_blank" rel="noopener" aria-label="Falar no WhatsApp">
+<a class="zap" href="https://wa.me/558788291247?text=Ol%C3%A1%20Wellerson!%20Vim%20pelo%20site%20e%20quero%20saber%20sobre%20o%20acompanhamento." target="_blank" rel="noopener" aria-label="Falar no WhatsApp">
   <svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-zap"/></svg>
 </a>
 
+
+<dialog class="modal" id="modal" aria-labelledby="modal-titulo">
+  <div class="modal__in">
+    <div class="modal__topo">
+      <div><p class="modal__tag" id="modal-tag"></p><h3 id="modal-titulo"></h3><p class="modal__spec" id="modal-spec"></p></div>
+      <button class="modal__fechar" type="button" id="modal-fechar" aria-label="Fechar"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-x"/></svg></button>
+    </div>
+    <p class="modal__resumo" id="modal-resumo"></p>
+    <div class="modal__corpo" id="modal-corpo"></div>
+  </div>
+</dialog>
 
 <div class="toast" id="toast" role="status" aria-live="polite">Copiado</div>
 
@@ -1370,20 +1402,38 @@ ul,ol{ margin:0; padding:0; list-style:none; }
   });
 })();
 
-/* Carta de serviço: o clique em qualquer ponto dela abre e fecha o detalhe ----
-   O <summary> continua sendo o controle de verdade — é ele que responde ao
-   teclado e ao leitor de tela. Isto aqui é só conveniência para o mouse. */
+/* Carta de serviço: o clique abre a janela ------------------------------
+   O detalhe já está no HTML, dentro da própria carta e escondido — assim ele
+   continua indexável e aparece inteiro se o JavaScript falhar (ver o <noscript>
+   no fim do <head>). A janela só empresta esse conteúdo na hora de abrir. */
 (function(){
+  var modal=document.getElementById('modal');
+  if(!modal || !modal.showModal) return;
+  var q=function(id){ return document.getElementById(id); };
+
+  function abrir(carta){
+    var det=carta.querySelector('.serv__detalhe'); if(!det) return;
+    q('modal-tag').textContent=carta.querySelector('.serv__tag').textContent;
+    q('modal-spec').textContent=carta.querySelector('.serv__spec').textContent;
+    q('modal-titulo').textContent=carta.querySelector('h3').textContent;
+    q('modal-resumo').textContent=carta.querySelector('.serv__resumo').textContent;
+    q('modal-corpo').innerHTML=det.innerHTML;
+    modal.showModal();
+  }
+
   document.querySelectorAll('.serv').forEach(function(carta){
-    var det=carta.querySelector('details.det'); if(!det) return;
     carta.addEventListener('click', function(e){
-      /* link, o próprio summary e o conteúdo já aberto têm o comportamento deles */
-      if(e.target.closest('a, button, summary, .det__in')) return;
-      /* se a pessoa está selecionando texto, não é clique de abrir */
+      /* link e botão de dentro do detalhe têm o comportamento deles */
+      if(e.target.closest('a')) return;
+      /* arrastar para selecionar texto não é clique de abrir */
       if(String(window.getSelection())) return;
-      det.open=!det.open;
+      abrir(carta);
     });
   });
+
+  q('modal-fechar').addEventListener('click', function(){ modal.close(); });
+  /* Clique no <dialog> em si (não no conteúdo) é clique no backdrop: fecha. */
+  modal.addEventListener('click', function(e){ if(e.target===modal) modal.close(); });
 })();
 
 /* Comparador antes/depois ----------------------------------------------
